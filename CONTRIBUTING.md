@@ -13,4 +13,4 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
 
 #### Bileşen geliştirme
-[[Bileşen Geliştirme]] belgesine dikkat ederek geliştirdiğiniz Otağ Bileşenleri'ni tanıtıyoruz.
+Wiki'de bulunan Bileşen Geliştirme belgesine dikkat ederek geliştirdiğiniz Otağ Bileşenleri'ni tanıtıyoruz.
