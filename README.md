@@ -21,3 +21,5 @@ MIT Lisansı ile korunmaktadır.
 
 #### Katılım sağlama
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
+
+**[Belgelendirme](https://github.com/ilgilenio/Otag/wiki)**
