@@ -112,7 +112,7 @@ var O,Otag=O={
                 let i=Math.min.apply(Math,['[','#','.'].map(function(i){i=s.indexOf(i);return i==-1?Infinity:i;}))
                 d[0]=s.substr(0,i);
                 s=s.substring(i);
-                if(['otag','h1','div','svg','a','b','i','input','button','select','option','textarea','script','link','img'].indexOf(d[0])==-1){
+                if(['otag','h1','div','svg','a','b','i','input','button','select','option','textarea','script','link','img','span'].indexOf(d[0])==-1){
                     d[1].push(d[0]);d[0]='div';
                 }
             }
@@ -128,18 +128,6 @@ var O,Otag=O={
         }
         Object.keys(methods).forEach(function(i){
             this[cls][i]=methods[i];
-            /*if(cls=='Model'){
-                Object.defineProperties(Array.prototype,{
-                    [i]:{
-                        get:function(){
-                            let m='₺M:'+i;
-                            return this.map(function(i){
-                                return m.set(i);
-                            });
-                        }
-                    }
-                })
-            }*/
         },this);
     },
     _conf:{
@@ -559,7 +547,6 @@ var O,Otag=O={
         */
         has:function(e,before){
             if(e){
-            var fp=this._fingerprint=O.randKey(3);
             if(!this.View){this.View={};}
             if(e instanceof Array && !(e[0] instanceof Element)){
                 var a=[];
@@ -756,11 +743,11 @@ var O,Otag=O={
             return d[0];
         },
         /* 
-            'ResimKutusu'.extends('₺Bediz')
+            '#ResimKutusu'.extend('Bediz')
 
             Bileşeni belgede bulunan Ögeler ile çağırır.
         */
-        extend:function(){
+        extends:function(){
             let e=(this+'').get();
             if(e instanceof Array){
                 return e.map(O.F.each('extend',O.toArray(arguments)))
