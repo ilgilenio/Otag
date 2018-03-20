@@ -1,4 +1,4 @@
-### Otağ Çatı Çalışması
+### Otağ Çatı Çalışması
 
 Değişen ve gelişen günümüz teknolojisine layık **Hızlı**, **Yalın**, **Yenilikçi** “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.
 
