@@ -12,6 +12,51 @@ _   |/   __,  _   |/   __  _  __    _    __
 "use strict"
 var O,Otag=O={
     /*
+        Geçmiş/Yönlendirme/Sayfalama Yöneticisi
+        Belirlediğiniz yollara göre işlev çağırabilirsiniz, yönlendirme yapabilirsiniz
+        Öge uyandırabilirsiniz.
+
+
+    */
+    Page:function(){
+        Element.prototype.router=function(r){
+            return this.resp('route',function(route){
+                if(this.route){
+                    delete  window.Page.routes[this.route];
+                }
+                let s=this;
+                window.Page.routes[route]=function(r){
+                    s.wakeUp();
+                    
+                }
+            }).prop('route',r);
+        }
+        return window.Page={
+            routes:{},
+            route:function(hash){
+                if(hash instanceof Object){
+                    hash=hash.state||'';
+                }
+                var h=hash.split(':');
+                if(h[0]==''&&this.routes.index){
+                    return this.route('index');
+                }
+                let r,r1;
+                if(r=this.routes[h.shift()]){
+                    if(typeof r=='string'){return this.route(r);}
+                    if(typeof r=='function'){r.apply(null,h);}
+                    if(r instanceof Element){r.wakeUp();}
+                    //window.history.pushState(hash,null,'#/'+hash);
+                    window.history.replaceState(hash,null,'#/'+hash);
+                }
+            },
+            init:function(){
+                this.route(location.hash.substring(2));
+                window.onpopstate=this.route.bind(this);
+            }
+        }
+    },
+    /*
         let chain=O.Chain([f(),g(),h()]);
         chain(ilkİşleveGirdiler).then(başarı).catch(başarısız);
 
@@ -83,10 +128,10 @@ var O,Otag=O={
         /*var d=['\\.0₺','\\[0₺="1₺"\\]','#0₺','[\\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)','\\:(\\w+)'].reduce(function(d,i){return d.concat(new RegExp(i.vars([latin,latin]),'g'))},['div'])
         */var d= [
             'div',
-            /\.([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/g,
+            /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
             /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
             //new RegExp('#'+latin),
-            /\#([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)/,
+            /\#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
             /[\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
             /\:(\w+)/g
         ].map(function(r,j){
@@ -112,7 +157,7 @@ var O,Otag=O={
                 let i=Math.min.apply(Math,['[','#','.'].map(function(i){i=s.indexOf(i);return i==-1?Infinity:i;}))
                 d[0]=s.substr(0,i);
                 s=s.substring(i);
-                if(['otag','h1','div','svg','a','b','i','input','button','select','option','textarea','script','link','img','span'].indexOf(d[0])==-1){
+                if(HTMLTAGS.indexOf(d[0])==-1){
                     d[1].push(d[0]);d[0]='div';
                 }
             }
@@ -120,9 +165,10 @@ var O,Otag=O={
         return d;
     },
     /*
-        Model ve Bileşen tanımlamak içindir.
+        Model, Bileşen , Etiket tanımlamak içindir.
     */
     define:function(cls,methods){
+        if(cls=='tags'){return HTMLTAGS=HTMLTAGS.concat(methods);}
         if(!this[cls]){
             this[cls]={};
         }
@@ -248,7 +294,7 @@ var O,Otag=O={
         Uluslararasılaştırma(U18A) Betliği
     */
     ,i18n:{
-        _:{lang:null,map:null},
+        _:{lang:null,map:null,rtl:[],ranges:[1],scope:''},
         get:function(phrase){
             let e=this;
             return new Promise(function(res,rej){
@@ -280,10 +326,10 @@ var O,Otag=O={
         }),
         set:function(language){
             O.Disk._lang=language;
-            document.body.Class('ar',this.value!="ar");
+            O.ready.then(b=>b.Class('rtl',O.i18n._.rtl.indexOf(O.Disk._lang)==-1));
             let e=this,c=e._,set=function(res){
                 c.lang=language;
-                O.Disk['_l'+c.lang+(this[1]||'')]=res;
+                O.Disk['_l'+c.lang+(this[1]||'')+e._.scope]=res;
                 res=res.split('\n');
                 if(e._.map){res=res.map(e._.map);}
                 res.forEach(function(i,j){
@@ -303,10 +349,10 @@ var O,Otag=O={
                 var res;
                 c.phr={};
                 (c.ranges||[1]).forEach(function(i,j){
-                    if(res=O.Disk['_l'+language+(j||'')]){
+                    if(res=O.Disk['_l'+language+(j||'')+e._.scope]){
                         set.call([i,j],res);
                     }else{
-                        O.req(this.vars({lang:language,part:j})).then(set.bind([i,j,'net']));
+                        O.req(this.vars({lang:language,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
                     }
                     
                 },c.path);
@@ -324,7 +370,7 @@ var O,Otag=O={
                 var rem=[];
                 (config.ranges||[1]).forEach(function(i,j){
                     if(t2<(typeof t=='number'?t:t[j])){
-                        rem=rem.concat(Object.keys(config.langs).map(function(l){return '_l'+l+(j||'')}));
+                        rem=rem.concat(Object.keys(config.langs).map(function(l){return '_l'+l+(j||'')+(config.scope||'')}));
                     }
                 });
                 console.log(rem);
@@ -364,6 +410,13 @@ var O,Otag=O={
             return (path||'').split(':').reduce(function(s,i){
                 return s?(i==''?s.View:(s.View[i]?s.View[i]:null)):null;
             },this)
+        },
+        p:function(top){
+            var s=this;
+            while(top--){
+                s=this.parent;
+            }
+            return s;
         },
 
         //tanıma duyarlı özellik tanımlar O.resp incele!
@@ -504,6 +557,11 @@ var O,Otag=O={
                 })
             );
         },
+        do:function(method,on,args){
+            return this.prop('on'+(on||'click'),function(){
+                this.parent[method].apply(this.parent,args||[]);
+            });
+        },
         /*
             a='a'.init(),b='b'.init();
             Öge='Öge'.append([a,b]);    // a,b ekle
@@ -515,7 +573,7 @@ var O,Otag=O={
 
             Öge'ye alt Öge ekler
         */
-        append:function(e,rev){
+        append:function(e,rev,delay){
             if(e){
                 if(!(e instanceof Array)){
                     e=[e];
@@ -597,9 +655,13 @@ var O,Otag=O={
         Lang:function(i,phr){
             i=i||this.attr('phrase')||this.prop('phrase');
             let s=this;
+
             s.attr('phrase',i);
             if(phr){
-                s.prop('phr',phr);
+                s.prop('phr'+(typeof phr =='function'?'Select':''),phr);
+            }
+            if(this.phr&&this.phrSelect){
+                i=Number(i)+this.phrSelect(this.phr)/10;
             }
             let type=this.attr('t')||this.t
             O.i18n.get(i).then(function(p){
@@ -641,7 +703,7 @@ var O,Otag=O={
                         t=[t];
                     }
                     this.phr=t;
-                    console.log(1);
+                    //console.log(1);
                     this.Lang(phrase,t);
                 }else if(t instanceof Object){
                     if(!this.main){this.main=this.innerHTML;}
@@ -692,9 +754,18 @@ var O,Otag=O={
         */
         attr:function(k,v){
             return this.prop.apply(this,[k,v,'attr']);
+        },
+        //geliştirme aşamasında
+        storage:function(key,dataProp){
+            this.store=key;
+            this.resp(dataProp||'value',function(value){
+                O.Disk[this.store]=value;
+            })
+            return this;
         }
     },
     String:{
+        
         /* 
             '.CSS.Seçici'.get() // [Öge,Öge..]
             '#Kimlik'.get() // Öge
@@ -733,11 +804,12 @@ var O,Otag=O={
             if(d[1].length){
                 d[0].Class(d[1]);
             }
-            if(d[2] instanceof Object){
-                d[0].attr(d[2]);
-            }
+            d[0].attr(d[2]);
             if(d[3].length){
                 d[0].id=d[3][0];
+            }
+            if(d[0].tagName=='INPUT'){
+                d[0].addEventListener('keyup',function(e){if(e.keyCode==13&&this.enter){this.enter(this.value)}})
             }
             //if(!d[0].View){d[0].View={};}
             return d[0];
@@ -787,6 +859,15 @@ var O,Otag=O={
             return Object.keys(vars).reduce(function(m,v){
                 return m.replace(new RegExp("("+v+"[₺|\$|₸|₼])+"),vars[v]);
             },this)
+        },
+        replaceAll:function(f,r){
+            var s=this;
+            for(var i in f){
+                while(s.indexOf(f[i])>-1){
+                    s=s.replace(f[i],r[i]);
+                }
+            }
+            return s;
         }
     },
     Function:{
@@ -841,7 +922,7 @@ var O,Otag=O={
 };
 O.F={
     //. A/B
-    // [1,2,3,4].filter(O.Filter.arrHas([3,4,5])); =>1,2
+    // [1,2,3,4].filter(O.Filter.diff([3,4,5])); =>1,2
     diff:function(arr){
         return function(i){
             return arr.indexOf(i)<0
@@ -973,4 +1054,5 @@ Object.defineProperties(Element.prototype,{
         else{return this.data||null;}
     },
     set:function(o){if(this.View){this.setView(o)}else{this.set(o);}}}
-})
+});
+var HTMLTAGS='otag,h1,div,svg,a,b,i,input,button,select,option,textarea,script,link,img,span,ul,li'.split(',');
