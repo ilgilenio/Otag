@@ -32,3 +32,4 @@ MIT Lisansı ile korunmaktadır.
 
 #### Katılım sağlama
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
+[Tasarı gözlem yazıtımız](https://tree.taiga.io/project/ilgilenio-otag/kanban)'a gözatın
