@@ -5,7 +5,7 @@ _   |/   __,  _   |/   __  _  __    _    __
  |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
           /|
 *         \|    2016-2018 ilgilenio® 
-*               Otag Çatı Çalışması 1.0.0
+*               Otag Çatı Çalışması 1.0.3
 *               https://github.com/ilgilenio/Otag/wiki
 *               MIT ile korunmaktadır
 */
@@ -16,7 +16,25 @@ var O,Otag=O={
         Belirlediğiniz yollara göre işlev çağırabilirsiniz, yönlendirme yapabilirsiniz
         Öge uyandırabilirsiniz.
 
-
+        Betçi=new Page();
+        Page.route.index='uygulamam';
+        Page.route.uygulamam='Uygulama'
+        .prop('s',0)
+        .interval(function(){
+            this.set({s:++this.s});
+        },1000)
+        .has({
+            wakeUp:function(){
+                //zamansal etkinliği başlat
+               
+                return this.interval('start');
+            },
+            sleep:function(){
+                //zamansal etkinliği durdur
+                return this.interval('stop')
+            }
+        })
+        .set('Paralel evrende ₺s sn geçti');
     */
     Page:function(){
         Element.prototype.router=function(r){
@@ -45,7 +63,7 @@ var O,Otag=O={
                 if(r=this.routes[h.shift()]){
                     if(typeof r=='string'){return this.route(r);}
                     if(typeof r=='function'){r.apply(null,h);}
-                    if(r instanceof Element){r.wakeUp();}
+                    if(r instanceof Element){this.now=r;r.wakeUp(hash);}
                     //window.history.pushState(hash,null,'#/'+hash);
                     window.history.replaceState(hash,null,'#/'+hash);
                 }
@@ -53,6 +71,12 @@ var O,Otag=O={
             init:function(){
                 this.route(location.hash.substring(2));
                 window.onpopstate=this.route.bind(this);
+            },
+            now:function(){
+                //Eğer önceki Bet'in Uykusu varsa ninni söyle
+                if(this.now&&this.now.sleep){
+                    this.now.sleep();
+                }
             }
         }
     },
@@ -70,7 +94,7 @@ var O,Otag=O={
         var obj = this||null;
         return function(){
             let args=arguments;
-            obj=obj||this;
+            obj=this||obj;
             return new Promise(function(res,rej){
                 var prom=f.shift().prom().apply(obj,args),i;
                 while(i=f.shift()){
@@ -94,20 +118,29 @@ var O,Otag=O={
             prop={[prop]:f};
         }
         let e=this||{};
+        var f={};
         Object.defineProperties(e,Object.keys(prop).reduce(function(s,p){
-            let f=prop[p];
-            if(e[p]){e['_'+p]=e[p];}
-            s[p]={
-                get:function(){
-                    return this['_'+p];
-                },
-                set:function(val){
-                    if(val!=this[p]){
-                        f.call(this,val);
-                        this['_'+p]=val;
+            let f1=prop[p];
+            if(f[p]){
+                f[p].push(f1);
+            }else{
+                f[p]=[f1];
+                if(e[p]){e['_'+p]=e[p];}
+                s[p]={
+                    get:function(){
+                        return this['_'+p];
+                    },
+                    set:function(val){
+                        if(val!=this[p]){
+                            f[p].forEach(function(i){
+                                i.call(this,val);
+                            },this);
+                            this['_'+p]=val;
+                            
+                        }
                     }
-                }
-            };
+                };
+            }
             return s;
         },{}));
         return e;
@@ -123,10 +156,24 @@ var O,Otag=O={
         });
     })
     ,_selector:function(s){
+        /*
+        bu taslak düşünülecek
+        var res={
+            tag:'div',
+            class: /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
+            attr:/\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
+            //new RegExp('#'+latin),
+            id:/\#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
+            module:/[\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
+            args:/\:(\w+)/g
+        }
+        Object.keys(res).forEach(function(i,j){
+            let r=res[i];
+        });*/
+
         //tag,class,attr,id,module,argument
-        var latin='([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)';
-        /*var d=['\\.0₺','\\[0₺="1₺"\\]','#0₺','[\\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)','\\:(\\w+)'].reduce(function(d,i){return d.concat(new RegExp(i.vars([latin,latin]),'g'))},['div'])
-        */var d= [
+
+        var d= [
             'div',
             /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
             /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
@@ -155,9 +202,9 @@ var O,Otag=O={
         if(!isFinite(s)&&s.length){
             if(['[','#','.'].indexOf(s[0])==-1){
                 let i=Math.min.apply(Math,['[','#','.'].map(function(i){i=s.indexOf(i);return i==-1?Infinity:i;}))
-                d[0]=s.substr(0,i);
+                d[0]=s.substr(0,i).trim();
                 s=s.substring(i);
-                if(HTMLTAGS.indexOf(d[0])==-1){
+                if(!(/^[a-zşüöçığ]+/g.test(d[0]))||(d[0].indexOf(' ')>-1)){
                     d[1].push(d[0]);d[0]='div';
                 }
             }
@@ -165,10 +212,9 @@ var O,Otag=O={
         return d;
     },
     /*
-        Model, Bileşen , Etiket tanımlamak içindir.
+        ₺M:Model ve ₺Bileşen tanımlamak içindir.
     */
     define:function(cls,methods){
-        if(cls=='tags'){return HTMLTAGS=HTMLTAGS.concat(methods);}
         if(!this[cls]){
             this[cls]={};
         }
@@ -430,7 +476,7 @@ var O,Otag=O={
             if(O.UI[component]){
                 return O.UI[component].apply(this,args||[]);
             }else{
-                console.warn(component,'is not defined');
+                console.warn('₺'+component,'is not defined');
                 return this;
             }
         },
@@ -454,18 +500,21 @@ var O,Otag=O={
                 },after||0);
             });
         },
-        interval:function(f,t,args){
+        interval:function(f,t,args,start){
             if(this._interval){
                 clearInterval(this._interval);
             }
-            if(f=='passive'){return this;}
+            if(f=='stop'){return this;}
             if(typeof f =='function'){
                 this.__interval=[function(i,a){f.apply(i,a||[]);},t,this,args];
                 this.__iParams=[f,args||[],t];
             }
-            this._interval=setInterval.apply(window,this.__interval);;
-            this.__iParams[0].apply(this,this.__iParams[1]);
+            if(start){
+                this._interval=setInterval.apply(window,this.__interval);;
+                this.__iParams[0].apply(this,this.__iParams[1]);
+            }
             return this;
+
         },
         /*
             Öge='Öge'.disp( );      // Gizle
@@ -608,7 +657,7 @@ var O,Otag=O={
             if(!this.View){this.View={};}
             if(e instanceof Array && !(e[0] instanceof Element)){
                 var a=[];
-                for(i in e){
+                for(var i in e){
                     a.push("d".has(e[i]));
                     e[i].parent=this;
                     O.combine(this.View,e[i]);
@@ -789,8 +838,6 @@ var O,Otag=O={
         */
         init:function(){
             let s=this+'',d=O._selector(s);
-            
-
             if(d[4].length){
                 let ui=d[4][0];
                 if(!O.UI[ui]){console.log(ui,'is not defined')};
@@ -804,6 +851,7 @@ var O,Otag=O={
             if(d[1].length){
                 d[0].Class(d[1]);
             }
+            //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
             d[0].attr(d[2]);
             if(d[3].length){
                 d[0].id=d[3][0];
@@ -1055,4 +1103,3 @@ Object.defineProperties(Element.prototype,{
     },
     set:function(o){if(this.View){this.setView(o)}else{this.set(o);}}}
 });
-var HTMLTAGS='otag,h1,div,svg,a,b,i,input,button,select,option,textarea,script,link,img,span,ul,li'.split(',');

@@ -384,7 +384,7 @@ O.define('UI',{
 				this.value=!this.value;
 			}
 			,value:def||false
-		}).has({phr:'a.title'.set(a,1),button:"set"}).resp('value',function(v){
+		}).has({phr:'a.title'.set(a,1),button:".set"}).resp('value',function(v){
 			this.Class('false',v)
 			if(this.onchange){this.onchange.call(this,v)}
 		});
