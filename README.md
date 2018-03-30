@@ -2,7 +2,7 @@
 
 Değişen ve gelişen günümüz teknolojisine layık **Hızlı**, **Yalın**, **Yenilikçi** “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.
 
-![](https://camo.githubusercontent.com/a404e7f6b4b5c1a9914b1a7c4c1c74c73022a358/68747470733a2f2f7062732e7477696d672e636f6d2f6d656469612f42537948513038435941416d4778613f666f726d61743d6a7067)
+![OtağJS](http://handeyemagazine.com/sites/default/files/05940010.JPG)
 
 
 #### İlkeler
