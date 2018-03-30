@@ -2,8 +2,8 @@
 
 Değişen ve gelişen günümüz teknolojisine layık **Hızlı**, **Yalın**, **Yenilikçi** “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.
 
-![OtağJS](http://handeyemagazine.com/sites/default/files/05940010.JPG)
-
+![OtağJS](https://images.unsplash.com/photo-1489421382202-f7ec0cfd96f7?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=5b82cdc8d05177379792872591e0f2a7&auto=format&fit=crop&w=1350&q=80)
+> **Kırgızistan'daki bir Otağ** Fotoğraf: [Oziel Gomez](https://unsplash.com/@ozgomz)
 
 #### İlkeler
 Otağ Çatı çalışması temel ilkeleri şunlardır:
