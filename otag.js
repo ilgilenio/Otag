@@ -1,8 +1,8 @@
-﻿/*   _             _
- o  | |        o  | |                o
-_   |/   __,  _   |/   __  _  __    _    __
- |  |   /  | / |  |   |_/ / |/  |  / |  /  \
- |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
+﻿/*    _             _
+  o  | |        o  | |                o
+ _   |/   __,  _   |/   __  _  __    _    __
+  |  |   /  | / |  |   |_/ / |/  |  / |  /  \
+  |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
           /|
 *         \|    2016-2018 ilgilenio® 
 *               Otag Çatı Çalışması 1.0.3
@@ -16,26 +16,9 @@ var O,Otag=O={
         Belirlediğiniz yollara göre işlev çağırabilirsiniz, yönlendirme yapabilirsiniz
         Öge uyandırabilirsiniz.
 
-        Betçi=new Page();
-        Page.route.index='uygulamam';
-        Page.route.uygulamam='Uygulama'
-        .prop('s',0)
-        .interval(function(){
-            this.set({s:++this.s});
-        },1000)
-        .has({
-            wakeUp:function(){
-                //zamansal etkinliği başlat
-               
-                return this.interval('start');
-            },
-            sleep:function(){
-                //zamansal etkinliği durdur
-                return this.interval('stop')
-            }
-        })
-        .set('Paralel evrende ₺s sn geçti');
+        https://ilgilenio.github.io/Otag/ornekler/Page
     */
+    
     Page:function(){
         Element.prototype.router=function(r){
             return this.resp('route',function(route){
@@ -49,7 +32,7 @@ var O,Otag=O={
                 }
             }).prop('route',r);
         }
-        return window.Page={
+        return window.Page=O.resp.call({
             routes:{},
             route:function(hash){
                 if(hash instanceof Object){
@@ -69,16 +52,23 @@ var O,Otag=O={
                 }
             },
             init:function(){
-                this.route(location.hash.substring(2));
+                
+                var title;
+                if(!(title='title'.get()).length){
+                    document.head.append(title=['title'.set('page₺')])
+                }
+                this.title=title[0];
+                this.route(decodeURI(location.hash.substring(2)));
                 window.onpopstate=this.route.bind(this);
             },
-            now:function(){
-                //Eğer önceki Bet'in Uykusu varsa ninni söyle
-                if(this.now&&this.now.sleep){
-                    this.now.sleep();
-                }
+            
+        },{now:function(now){
+            //Eğer önceki Bet'in Uykusu varsa ninni söyle
+            if(this.now&&this.now.sleep){
+                this.now.sleep();
             }
-        }
+            this.title.set({page:now.pageTitle||''});
+        }});
     },
     /*
         let chain=O.Chain([f(),g(),h()]);
@@ -111,36 +101,44 @@ var O,Otag=O={
         prop    : Duyarlı özellik
         f       : Atanırken çağrılacak işlev
 
-        Bir nesneye tanıma duyarlı özellik tanımlar
+        Bir nesneye tanıma duyarlı özellik tanımlar.
     */
     resp:function(prop,f){
         if(typeof prop=='string'){
             prop={[prop]:f};
         }
         let e=this||{};
-        var f={};
         Object.defineProperties(e,Object.keys(prop).reduce(function(s,p){
-            let f1=prop[p];
-            if(f[p]){
-                f[p].push(f1);
+            var fx=prop[p];
+            // Bu özellikte daha önceden tanımlanmış bir duyar var mı
+            if(e.__lookupGetter__(p)){
+                let fOld=e.__lookupGetter__(p)(1);
+                if(typeof fOld=='function'){fOld=[fOld];}
+                //Eski duyarla yeni duyarı birleştir.
+                fx=fOld.concat(fx);
             }else{
-                f[p]=[f1];
                 if(e[p]){e['_'+p]=e[p];}
-                s[p]={
-                    get:function(){
-                        return this['_'+p];
-                    },
-                    set:function(val){
-                        if(val!=this[p]){
-                            f[p].forEach(function(i){
-                                i.call(this,val);
-                            },this);
-                            this['_'+p]=val;
-                            
-                        }
-                    }
-                };
             }
+
+            s[p]={
+                get:function(f){
+                    return f?fx:this['_'+p];
+                },
+                set:function(val){
+                    if(val!=this[p]){
+                        // Tek bir duyar mı var yoksa birden fazla mı duyar eklenmiş?
+                        if(typeof fx=='function'){
+                            fx.call(this,val)
+                        }else{
+                            fx.forEach(function(i){
+                                i.call(this,val);
+                            },this)
+                        }
+                        this['_'+p]=val;
+                        
+                    }
+                }
+            };
             return s;
         },{}));
         return e;
@@ -509,7 +507,7 @@ var O,Otag=O={
                 this.__interval=[function(i,a){f.apply(i,a||[]);},t,this,args];
                 this.__iParams=[f,args||[],t];
             }
-            if(start){
+            if(start||f=='start'){
                 this._interval=setInterval.apply(window,this.__interval);;
                 this.__iParams[0].apply(this,this.__iParams[1]);
             }
@@ -804,12 +802,26 @@ var O,Otag=O={
         attr:function(k,v){
             return this.prop.apply(this,[k,v,'attr']);
         },
+        link:function(addr){
+            this.href=addr;
+            if(!this.onclick){
+                this.onclick=function(e){
+                    e.stopPropagation();
+                    window.Page.route(this.href);
+                }
+            }
+            return this;
+        },
         //geliştirme aşamasında
         storage:function(key,dataProp){
             this.store=key;
             this.resp(dataProp||'value',function(value){
                 O.Disk[this.store]=value;
             })
+            return this;
+        },
+        subs:function(_activator){
+            O._R.push(this);
             return this;
         }
     },
@@ -967,6 +979,7 @@ var O,Otag=O={
         }
     }
 }
+
 };
 O.F={
     //. A/B
