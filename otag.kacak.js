@@ -46,7 +46,7 @@ O=O.combine(O,{
             })
             //this.cast(,-1);
         },
-        cast:function(topic,data){
+        cast:function(topic,data,opts){
             opts=opts||{},topic=String(topic).split(':');
 
             let _activator=Number(topic.shift());
@@ -108,7 +108,7 @@ O.proto={
             let s=this;
             (new Image()).prop({
                 onload:function(){
-                    a.Class('default',1).prop({
+                    s.Class('default',1).prop({
                         size:[this.height,this.width]
                         ,ratio:this.height/this.width
                         ,loaded:1

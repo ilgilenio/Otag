@@ -458,7 +458,7 @@ var O,Otag=O={
         p:function(top){
             var s=this;
             while(top--){
-                s=this.parent;
+                s=s.parent;
             }
             return s;
         },
@@ -871,7 +871,7 @@ var O,Otag=O={
             if(d[0].tagName=='INPUT'){
                 d[0].addEventListener('keyup',function(e){if(e.keyCode==13&&this.enter){this.enter(this.value)}})
             }
-            //if(!d[0].View){d[0].View={};}
+            if(!d[0].View){d[0].View={};}
             return d[0];
         },
         /* 
