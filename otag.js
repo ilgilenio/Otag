@@ -15,24 +15,25 @@ var O,Otag=O={
         Geçmiş/Yönlendirme/Sayfalama Yöneticisi
         Belirlediğiniz yollara göre işlev çağırabilirsiniz, yönlendirme yapabilirsiniz
         Öge uyandırabilirsiniz.
-
-        https://ilgilenio.github.io/Otag/ornekler/Page
+        
+        Örnek kullanım
+        https://github.com/ilgilenio/ilgilenio.github.io/tree/master/Otag/ornekler/Atasözleri
     */
     
     Page:function(){
         Element.prototype.router=function(r){
             return this.resp('route',function(route){
                 if(this.route){
-                    delete  window.Page.routes[this.route];
+                    delete  O.Page.routes[this.route];
                 }
                 let s=this;
-                window.Page.routes[route]=function(r){
+                O.Page.routes[route]=function(r){
                     s.wakeUp();
                     
                 }
             }).prop('route',r);
         }
-        return window.Page=O.resp.call({
+        O.Page=O.resp.call({
             routes:{},
             route:function(hash){
                 if(hash instanceof Object){
@@ -50,18 +51,7 @@ var O,Otag=O={
                     //window.history.pushState(hash,null,'#/'+hash);
                     window.history.replaceState(hash,null,'#/'+hash);
                 }
-            },
-            init:function(){
-                
-                var title;
-                if(!(title='title'.get()).length){
-                    document.head.append(title=['title'.set('page₺')])
-                }
-                this.title=title[0];
-                this.route(decodeURI(location.hash.substring(2)));
-                window.onpopstate=this.route.bind(this);
-            },
-            
+            }
         },{now:function(now){
             //Eğer önceki Bet'in Uykusu varsa ninni söyle
             if(this.now&&this.now.sleep){
@@ -69,6 +59,21 @@ var O,Otag=O={
             }
             this.title.set({page:now.pageTitle||''});
         }});
+        let init=function(){
+            var title;
+            if(!(title='title'.get()).length){
+                document.head.append(title=['title'.init()])
+            }
+            if(title[0].innerHTML.indexOf('page₺')==-1){
+                title[0].set('page₺')
+            }
+            
+            this.title=title[0];
+            this.route(decodeURI(location.hash.substring(2)));
+            window.onpopstate=this.route.bind(this);
+        };
+        O.ready.then(init.bind(O.Page));
+        return O.Page;
     },
     /*
         let chain=O.Chain([f(),g(),h()]);
@@ -117,7 +122,7 @@ var O,Otag=O={
                 //Eski duyarla yeni duyarı birleştir.
                 fx=fOld.concat(fx);
             }else{
-                if(e[p]){e['_'+p]=e[p];}
+                if(e[p]!=undefined){e['_'+p]=e[p];}
             }
 
             s[p]={
@@ -142,6 +147,32 @@ var O,Otag=O={
             return s;
         },{}));
         return e;
+    },
+    /*
+        O.stor.call({},{prop:storekey})
+        O.stor.call({},prop,storekey)
+
+        prop    : Nesnede özellik adı
+        storekey: Yığınakta tutulacak değişkenin adı
+
+        Bir nesneye tanıma duyarlı özellik tanımlar.
+    */
+    stor:function(prop,storekey){
+        if(typeof prop=='string'){
+            prop={[prop]:storekey};
+        }
+        return Object.keys(prop).reduce(function(e,p){
+            var store=prop[p],v;
+            // Bu özellikte daha önceden tanımlanmış bir duyar var mı
+            if((v=O.Disk[store])!=null){
+                e[p]=v;
+            }/*else if(e[p]){
+                O.Disk[store]=e[p];
+            }*/
+            return O.resp.call(e,p,function(val){
+                O.Disk[store]=val;
+            });
+        },this||{});
     }
     /*
         O.ready.then(body=> )
@@ -467,6 +498,10 @@ var O,Otag=O={
         resp:function(prop,f){
             return O.resp.call(this,prop,f);
         },
+        //barındırılan özellik tanımlar
+        stor:function(prop,key){
+            return O.stor.call(this,prop,key);
+        },
         /*
             String.prototype.extend incele
         */
@@ -598,6 +633,23 @@ var O,Otag=O={
                         return i;
                     }else if(i instanceof Array){
                         return i[0].layout(i[1],s);
+                    }else{
+                        return s.V(i)||i.init();
+                    }
+                })
+            );
+        },
+        layout2:function(lay,master){
+            let s=master||this;
+            this.innerHTML='';
+            return this.append(
+                (lay._||Object.keys(lay)).map(function(i){
+                    if(lay[i] instanceof Element){
+                        return lay[i];
+                    }else if(lay[i] instanceof Array){
+                        return s.append(lay[i]);
+                    }else if(lay[i] instanceof Object){
+                        return (i).layout(lay[i],s);
                     }else{
                         return s.V(i)||i.init();
                     }
@@ -802,22 +854,19 @@ var O,Otag=O={
         attr:function(k,v){
             return this.prop.apply(this,[k,v,'attr']);
         },
-        link:function(addr){
-            this.href=addr;
+        link:function(addr,href){
+
+            this.href=href||addr;
+            this.addr=addr;
             if(!this.onclick){
                 this.onclick=function(e){
+                    e.preventDefault();
                     e.stopPropagation();
-                    window.Page.route(this.href);
+                    if(O.Page!='function'){
+                        O.Page.route(this.addr);
+                    }
                 }
             }
-            return this;
-        },
-        //geliştirme aşamasında
-        storage:function(key,dataProp){
-            this.store=key;
-            this.resp(dataProp||'value',function(value){
-                O.Disk[this.store]=value;
-            })
             return this;
         },
         subs:function(_activator){
