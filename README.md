@@ -19,9 +19,11 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 #### Sürüm
 1.0.0 (Z)
 
-[otag.js](https://ilgilenio.github.io/Otag/otag.js) (Geliştirme)
+Sürümleri ve etkinlikleri [takip edin 📆](https://ilgilenio.github.io/Otag/cizelge/takvim.ics)
 
-[otag.min.js](https://ilgilenio.github.io/Otag/otag.min.js) (**12.2kb**, _4.5kb GZIP_)
+[otag.js](https://ilgilenio.github.io/Otag/otag.js) (Geliştirme,son)
+
+[otag.min.js](https://ilgilenio.github.io/Otag/otag.min.js) (1.0.0 **12.2kb**, _4.5kb GZIP_)
 
 
 #### Belgelendirme
