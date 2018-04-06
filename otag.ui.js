@@ -377,7 +377,113 @@ O.define('UI',{
 		,_constructor:_constructor?(typeof _constructor=='function'?_constructor:(O.Model[_constructor]?O.Model[_constructor]:O.Model.Default)):O.Model.Default
 		})
 	},K:null,
-	
+	Array:function(_constructor){
+		let elem=this instanceof Element?this:this.init();
+
+
+		Object.defineProperties(elem,{
+			value:{
+				get:function(){
+					return O.toArray(this.View).map(O.F.value('value'))
+				},
+				set:function(v){
+					this.set(v);
+				}
+		}});
+		Array.prototype.forEach(function(i){
+			elem[i]=function(){
+				let Arr=this.value;
+				return Arr[i].apply(Arr,arguments);
+			}
+		});
+		return elem.prop({
+		clear:function(){
+			this.View.forEach(function(i,j){i.destroy(j*50)});
+			this.View=[];
+			this.hash=0;
+			return this;
+		}
+		,length:0
+		,View:[]
+		,opts:{}
+		,set:function(data,push){
+			//console.log(data)
+			if(push){return this.push(data);}
+			if(data.length==0){
+				this.clear();}
+			/*}
+			let elems=this.View.map(function(i){return i.oid;}),
+			l=elems.length,l2=data.length,s=this;*/
+			var destr=0;
+			if(!	this.opts.set){
+				this.View.map(function(i,j){
+					if(data.length){
+						i.oid=data.shift();
+					}else{
+						i.destroy(destr+50);
+						this[j]=null;
+					}
+				},this.View);
+			}else{
+				let s=this;
+				this.value.forEach(function(i,j){
+					if((ind=data.indexOf(i))==-1){
+						if(id=data.shift()){
+							s.View[j].oid=id;
+						}else{
+							s.View[j].destroy(destr+=50);
+							s.View[j]=null;
+						}
+					}else{
+						data[ind]=null;
+					}
+				});
+			}
+			return this.push(data);
+		}
+		,push:function(data){
+			let s=this;
+			this.View=this.View.filter(function(i){return i!=null})
+			.concat(data.filter(function(i){return i!=null;}).map(function(i,j){
+				let e=s._constructor(i,s.opts).prop({
+					parent:s,
+					oid:i
+				}).Class("item").disp();
+				s.appendChild(e);
+				e.disp.bind(e).debounce(j*100)(1);
+				return e;
+			}));
+			this.length=this.View.length;
+			//this.store();
+			return this;
+		}
+		,update:function(data){
+			this.View.map(function(i,j){
+				i.oid=data[j];
+			})
+			return this;
+		}
+		,filter:function(f,returnViewsOnly){
+			let v=this.View.filter(f);
+			this.innerHTML='';
+			if(returnViewsOnly){return v;}
+			return this.append(v);
+		}
+		,removed:function(data){
+			let r;
+			this.value=this.value.filter(O.F.diff([data]));
+			this.length=this.View.length;
+			return this;//.store();
+		}
+		,remove:function(data,anim){
+			this.value=this.value.filter(O.F.diff([data]));
+			//this.length=this.View.length;
+			return this;//.store();
+		}
+		
+		,_constructor:_constructor?(typeof _constructor=='function'?_constructor:(O.Model[_constructor]?O.Model[_constructor]:O.Model.Default)):O.Model.Default
+		})
+	},
 	Bool:function(a,def){
 		return this.Class('false',(def||false)).prop({
 			onclick:function(){
@@ -386,7 +492,6 @@ O.define('UI',{
 			,value:def||false
 		}).has({phr:'a.title'.set(a,1),button:".set"}).resp('value',function(v){
 			this.Class('false',v)
-			if(this.onchange){this.onchange.call(this,v)}
 		});
 	},
 	Boolean:function(def){
@@ -397,9 +502,7 @@ O.define('UI',{
 			}
 			,set:function(v){
 				this.value=v=Boolean(v=='false'?0:(v=='true'?1:Number(v)));
-				this.Class('false',v)
-				this.dispatchEvent(new Event('change'));
-				if(this.onchange){this.onchange.call(this,v)}
+				this.Class('false',v);
 			}
 			,value:def||false
 		})
