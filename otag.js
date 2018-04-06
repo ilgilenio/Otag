@@ -48,7 +48,7 @@ var O,Otag=O={
                     if(typeof r=='function'){r.apply(null,h);}
                     if(r instanceof Element){this.now=r;r.wakeUp(hash);}
                     //window.history.pushState(hash,null,'#/'+hash);
-                    window.history.replaceState(hash,null,'#/'+hash);
+                    window.history.replaceState(hash,null,'/'+hash);
                 }
             },
             init:function(){
@@ -871,7 +871,7 @@ var O,Otag=O={
             if(d[0].tagName=='INPUT'){
                 d[0].addEventListener('keyup',function(e){if(e.keyCode==13&&this.enter){this.enter(this.value)}})
             }
-            //if(!d[0].View){d[0].View={};}
+            if(!d[0].View){d[0].View={};}
             return d[0];
         },
         /* 
