@@ -69,7 +69,7 @@ var O,Otag=O={
             }
             
             this.title=title[0];
-            this.route(decodeURI(location.hash.substring(2)));
+            this.route(decodeURI(location.pathname.substring(1)));
             window.onpopstate=this.route.bind(this);
         };
         O.ready.then(init.bind(O.Page));
