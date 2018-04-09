@@ -43,15 +43,23 @@ var O,Otag=O={
                 if(h[0]==''&&this.routes.index){
                     return this.route('index');
                 }
-                let r,r1;
-                if(r=this.routes[h.shift()]){
-                    if(typeof r=='string'){return this.route(r);}
-                    if(typeof r=='function'){r.apply(null,h);}
-                    if(r instanceof Element){this.now=r;if(typeof r.wakeUp === "function"){r.wakeUp(hash);}else{document.body.html(r);}}
-                    //window.history.pushState(hash,null,'#/'+hash);
-                    window.history.replaceState(hash,null,'/'+hash);
+                let r=this.routes[h.shift()],r1;
+                if(r===undefined){
+                   r=this.noPage;
                 }
-            }
+                if(typeof r=='string'){return this.route(r);}
+                if(typeof r=='function'){r.apply(null,h);}
+                if(r instanceof Element){this.now=r;if(typeof r.wakeUp == "function"){r.wakeUp(hash);}else{document.body.html(r);}}
+                //window.history.pushState(hash,null,'#/'+hash);
+                window.history.replaceState(hash,null,'/'+hash);
+            },
+            noPage:"Betyok".prop({
+               pageTitle: "No Page"
+            }).layout([
+               ["center", [
+                "h1".set("No Page"),
+               ]]
+            ])
         },{now:function(now){
             //Eğer önceki Bet'in Uykusu varsa ninni söyle
             if(this.now&&this.now.sleep){
