@@ -47,7 +47,7 @@ var O,Otag=O={
                 if(r=this.routes[h.shift()]){
                     if(typeof r=='string'){return this.route(r);}
                     if(typeof r=='function'){r.apply(null,h);}
-                    if(r instanceof Element){this.now=r;r.wakeUp(hash);}
+                    if(r instanceof Element){this.now=r;if(typeof r.wakeUp === "function"){r.wakeUp(hash);}else{document.body.html(r);}}
                     //window.history.pushState(hash,null,'#/'+hash);
                     window.history.replaceState(hash,null,'/'+hash);
                 }
