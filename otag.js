@@ -28,7 +28,7 @@ var O,Otag=O={
                 }
                 let s=this;
                 O.Page.routes[route]=function(r){
-                    s.wakeUp();
+                    s.wake();
                     
                 }
             }).prop('route',r);
@@ -43,29 +43,34 @@ var O,Otag=O={
                 if(h[0]==''&&this.routes.index){
                     return this.route('index');
                 }
-                let r=this.routes[h.shift()],r1;
-                if(r===undefined){
-                   r=this.noPage;
+                var r,r1;
+                if(!(r=this.routes[h.shift()])){
+                   r=this.none;
                 }
                 if(typeof r=='string'){return this.route(r);}
                 if(typeof r=='function'){r.apply(null,h);}
-                if(r instanceof Element){this.now=r;if(typeof r.wakeUp == "function"){r.wakeUp(hash);}else{document.body.html(r);}}
+                if(r instanceof Element){
+                    this.now=r;
+                    if(r.wake){r.wake.apply(r,h);}else{document.body.html(r);}
+                }
                 //window.history.pushState(hash,null,'#/'+hash);
                 window.history.replaceState(hash,null,'/'+hash);
             },
-            noPage:"Betyok".prop({
-               pageTitle: "No Page"
+            //kendi 404 betinizle değiştirin
+            none:"Bulunamadı".prop({
+               pTitle: "Bulunamadı"
             }).layout([
                ["center", [
-                "h1".set("No Page"),
+                "h1".set("Bet Bulunamadı"),
+                'p'.set("Aradığınız beti bulamadık.")
                ]]
             ])
         },{now:function(now){
             //Eğer önceki Bet'in Uykusu varsa ninni söyle
-            if(this.now&&this.now.sleep){
-                this.now.sleep();
+            if(this.now&&this.now.idle){
+                this.now.idle();
             }
-            this.title.set({page:now.pageTitle||''});
+            this.title.set({page:now.name||''});
         }});
         let init=function(){
             var title;

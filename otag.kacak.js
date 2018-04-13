@@ -1,65 +1,87 @@
-/*   _             _
- o  | |        o  | |                o
-_   |/   __,  _   |/   __  _  __    _    __
- |  |   /  | / |  |   |_/ / |/  |  / |  /  \
- |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
-          /|
-*         \|    2016-2018 ilgilenio® 
-*               Otag Framework 0.7.1 unstable
-*               Licensed under MIT
+/*    _             _
+  o  | |        o  | |                o
+ _   |/   __,  _   |/   __  _  __    _    __
+  |  |   /  | / |  |   |_/ / |/  |  / |  /  \
+  |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
+           /|
+*          \|    2016-2018 ilgilenio® 
+*                Otag Framework 1.1 stable
+*                Licensed under MIT
 * 
 *   ÖNEMLİ HATIRLATMA:
 *   Otağ'ın bu sürümü kararlı değildir ve değişiklikler oluşabilir.
 */
 O=O.combine(O,{
-    Data:{
-        get:function(root,aspect){
-            let d=O.Disk['O:'+root][aspect];
-            return d?O.resolve(d):this.fetch(root,aspect);
-        },
-        set:function(data){
-            O.Disk['O:'+root]//data
-            //this.cast();
-        },
-        set:function(root,data){
-            O.Disk['O:'+root]//data
-            //this.cast();
-        },
-        set:function(topic,data){
-            O.Disk['O:'+topic.shift()]=[topic]//data
-            this.cast(topic,data);
-        },
-        set:function(root,aspect,data){
-            O.Disk['O:'+root][aspect]//data
-            //this.cast();
-        },
-        rem:function(root){
-            delete O.Disk['O:'+root]
-            //this.cast(,-1);
-        },
-        //default fetcher, default data endpoint
-        fetch:function(root,aspect){
-            let f={o:root};
-            if(aspect){o.a=aspect;}
-            O.req('data',f).then(function(data){
-                this.set(root,aspect,data);
-            })
-            //this.cast(,-1);
-        },
-        cast:function(topic,data,opts){
-            opts=opts||{},topic=String(topic).split(':');
+    Data:function(){
+        O._R=[];
 
-            let _activator=Number(topic.shift());
-            topic=topic.join(':');
-            O._R.filter(O.F.eq(opts.activator||'oid',_activator)).forEach(topic.length?function(i){
-                    if(i=i.V(topic)){
-                        i.set(data);
-                        if(opts.after){opts.after.call(i);}
-                    }
-                }:function(i){
-                i.val=data;
-                if(opts.after){opts.after.call(i);}
-            })
+        // alıcılar için Öge yöntemi tanımla
+        O.define('method',{
+            subs:function(instant){
+                O._R.push(this);
+                return this;
+            }
+        });
+
+        /*
+         *  O.Data.cast('stats:likes:today',[0,2,9,1,3]);
+         *  O.Data.cast('stats:likes:today:2',9);
+         *  O.Data.req('stats:likes','today');
+         *  O.Data.req('stats:likes',['today','yesterday']);
+         */
+
+
+
+        return{
+            get:function(root,aspect){
+                let d=O.Disk['O:'+root][aspect];
+                return d?O.resolve(d):this.fetch(root,aspect);
+            },
+            set:function(data){
+                O.Disk['O:'+root]//data
+                //this.cast();
+            },
+            set:function(root,data){
+                O.Disk['O:'+root]//data
+                //this.cast();
+            },
+            set:function(topic,data){
+                O.Disk['O:'+topic.shift()]=[topic]//data
+                this.cast(topic,data);
+            },
+            set:function(root,aspect,data){
+                O.Disk['O:'+root][aspect]//data
+                //this.cast();
+            },
+            rem:function(root){
+                delete O.Disk['O:'+root]
+                //this.cast(,-1);
+            },
+            //default fetcher, default data endpoint
+            fetch:function(root,aspect){
+                let f={o:root};
+                if(aspect){o.a=aspect;}
+                O.req('data',f).then(function(data){
+                    this.set(root,aspect,data);
+                })
+                //this.cast(,-1);
+            },
+            cast:function(topic,data,opts){
+                opts=opts||{},topic=String(topic).split(':');
+
+                let _activator=Number(topic.shift());
+                topic=topic.join(':');
+                O._R.filter(O.F.eq(opts.activator||'oid',_activator)
+                .forEach(topic.length?function(i){
+                        if(i=i.V(topic)){
+                            i.set(data);
+                            if(opts.after){opts.after.call(i);}
+                        }
+                    }:function(i){
+                    i.val=data;
+                    if(opts.after){opts.after.call(i);}
+                })
+            }
         }
         /* Fikir verebilmek için bu yorum olarak yer almalı.
          * listen:function(){
@@ -70,7 +92,6 @@ O=O.combine(O,{
          */
         //req:function(){}
     }
-    ,_R:[]
     //e nesnesine tanıma duyarlı özellik tanımlar
     
     ,resolve:function(a){return (function(){return a;}).prom()();}
@@ -146,10 +167,6 @@ O.proto={
                     }
                 },100);
             });
-        },
-        subscribe:function(topic){
-            O._R.push(this);
-            return this;
         }
     },
 
