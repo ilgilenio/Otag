@@ -407,7 +407,7 @@ var O,Otag=O={
             ranges:[1],
             scope:''
         },opts); //Ön tanımlı seçenekseller
-        let module=O.i18n=this.append(Object.keys(opts.langs).map(opts.model,opts.langs));
+        let module=O.i18n=this.append(Object.keys(opts.langs).map(opts.model,opts.langs)).Class('i18n');
     
         var lastLocal,t;
         if((lastLocal=O.Disk._lTime)&&(t='otag[i18n]'.get()).length){
@@ -429,9 +429,10 @@ var O,Otag=O={
                             selected:i==this[0]
                         }).set(this[1][i]);
                     },[this.get(),this._.langs]));*/
-        return module.Class('i18n').prop({
+        return module.prop({
             _:opts,
-            dil:null,
+            dil:navigator.language.substr(0,2).toLowerCase(),
+            lastLocal:Array.from({length:opts.ranges.length}).map(function(){return 0}),
             onchange:function(){
                 O.i18n.dil=this.value;
             },
@@ -471,17 +472,18 @@ var O,Otag=O={
             }
         }).resp({
             dil:function(lang){
-                //O.Disk._lang=lang;
                 O.ready.then(b=>b.Class('rtl',O.i18n._.rtl.indexOf(O.Disk.dil)==-1));
                 let e=this,c=e._,set=function(res){
-                    O.Disk['_l'+e.dil+(this[1]||'')+e._.scope]=res;
+                    if(this[3]=='net'){
+                        O.Disk['_l'+this[2]+(this[1]||'')+e._.scope]=res;
+                    }
                     res=res.split('\n');
                     if(e._.map){res=res.map(e._.map);}
                     res.forEach(function(i,j){
                         c.phr[j+this]=i;
                     },this[0]||1);
-                    if(this[2]=='net'){
-                        var t=O.Disk._lTime||Array.from({length:c.ranges.length}).map(function(){return 0});
+                    if(this[3]=='net'){
+                        var t=O.Disk._lTime;
                         t[this[1]]=O.Time.now;
                         O.Disk._lTime=t;
                     }
@@ -496,9 +498,9 @@ var O,Otag=O={
                     c.r=0;
                     (c.ranges||[1]).forEach(function(i,j){
                         if(res=O.Disk['_l'+lang+(j||'')+e._.scope]){
-                            set.call([i,j],res);
+                            set.call([i,j,lang],res);
                         }else{
-                            O.req(this.vars({lang:lang,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
+                            O.req(this.vars({lang:lang,part:j,scope:e._.scope})).then(set.bind([i,j,lang,'net']));
                         }
                     },c.path);
                 }
@@ -507,7 +509,7 @@ var O,Otag=O={
         }).stor({
             dil:'_lang',
             lastLocal:'_lTime'
-        }).prop({dil:navigator.language.substr(0,2).toLowerCase()});
+        });
         return this;
     }
     /*
@@ -664,7 +666,7 @@ var O,Otag=O={
             if(!(c instanceof Array)){
                 c=[c];
             }
-            if(c.length&&c[0]!=null){
+            if(c.length&&c[0]!=null&&c[0]!=''){
                 this.className=c.reduce(function(a,b){
                     a=a.replace(new RegExp("(\\b"+b+")+"),"");
                     return (r?a:(a+" "+b)).replace(/\s{2}/g," ").trim();
@@ -687,24 +689,20 @@ var O,Otag=O={
                     }
                 })
             );
-        },
+        },/*
         layout2:function(lay,master){
             let s=master||this;
             this.innerHTML='';
             return this.append(
                 (lay._||Object.keys(lay)).map(function(i){
-                    if(lay[i] instanceof Element){
-                        return lay[i];
-                    }else if(lay[i] instanceof Array){
-                        return s.append(lay[i]);
-                    }else if(lay[i] instanceof Object){
-                        return (i).layout(lay[i],s);
+                    if(s.V(i)){
+                        return s.V(i);
                     }else{
-                        return s.V(i)||i.init();
+                        return i.layout2();
                     }
                 })
             );
-        },
+        },*/
         do:function(method,on,args){
             return this.prop('on'+(on||'click'),function(){
                 this.parent[method].apply(this.parent,args||[]);
@@ -961,11 +959,8 @@ var O,Otag=O={
             if(isFinite(s)&&s!=''&&O.i18n){
                 d[0].set(s,1).Class('label');
             }
-            if(d[1].length){
-                d[0].Class(d[1]);
-            }
             //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
-            d[0].attr(d[2]);
+            d[0].Class(d[1]).attr(d[2]);
             if(d[3].length){
                 d[0].id=d[3][0];
             }
