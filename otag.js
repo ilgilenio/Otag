@@ -381,99 +381,134 @@ var O,Otag=O={
     /*
         Uluslararasılaştırma(U18A) Betliği
     */
-    ,i18n:{
-        _:{lang:null,map:null,rtl:[],ranges:[1],scope:''},
-        get:function(phrase){
-            let e=this;
-            return new Promise(function(res,rej){
-                e.ready.then(function(){
-                    var phr=Math.floor(phrase);
-                    phrase=Math.round(phrase%1*10);
-                    if(e._.phr[phr]){
-                        res(e._.phr[phr].split('=')[phrase]);
-                    }else{
-                        rej();
-                    }
 
-                });
+    ,i18n:function(opts){
+        opts=O.combine({
+            langs:{tr:'Türkçe'},
+            lang:null,
+            map:null,
+            rtl:[],
+            model:function(i){
+                return 'option'.attr('value',i).set(this[i]);
+            },
+            /*model:function(i){
+                return 'a'.prop({
+                    href:'javascript:void(0)',
+                    value:i[0],
+                    onfocus:function(){
+                        this.click();
+                    },
+                    onclick:function(){
+                        e.preventDefault();
+                        O.i18n.dil=this.value;
+                    }
+                }).set(this[i]);
+            },*/
+            ranges:[1],
+            scope:''
+        },opts); //Ön tanımlı seçenekseller
+        let module=O.i18n=this.append(Object.keys(opts.langs).map(opts.model,opts.langs));
+    
+        var lastLocal,t;
+        if((lastLocal=O.Disk._lTime)&&(t='otag[i18n]'.get()).length){
+            t=t[0].attr('i18n'),
+            t=t.indexOf(',')==-1?Number(t):t.split(',').map(Number);
+            var rem=[];
+            opts.ranges.forEach(function(i,j){
+                if((typeof lastLocal=='number'?lastLocal:lastLocal[j])<(typeof t=='number'?t:t[j])){
+                    rem=rem.concat(Object.keys(opts.langs).map(function(l){return '_l'+l+(j||'')+(opts.scope||'')}));
+                }
             });
-        },
-        refresh:function(){
-            ('[phrase]').get().map(O.F.each('Lang'));
-        },
-        ready:new Promise(function(res,rej){
-
-            let i=setInterval(function(){
-                let c=O.i18n._;
-                if(c.r?(c.r==c.ranges.length):c.phr&&Object.keys(c.phr).length){
-                    clearInterval(i);
-                    res(1);
-                    c.div.value=c.lang;
-                }
-            },100);
-        }),
-        set:function(language){
-            O.Disk._lang=language;
-            O.ready.then(b=>b.Class('rtl',O.i18n._.rtl.indexOf(O.Disk._lang)==-1));
-            let e=this,c=e._,set=function(res){
-                c.lang=language;
-                O.Disk['_l'+c.lang+(this[1]||'')+e._.scope]=res;
-                res=res.split('\n');
-                if(e._.map){res=res.map(e._.map);}
-                res.forEach(function(i,j){
-                    c.phr[j+this]=i;
-                },this[0]||1);
-                if(this[2]=='net'){
-                    var t=O.Disk_lTime||Array.from({length:c.ranges.length}).map(function(){return 0});
-                    t[this[1]]=O.Time.now;
-                    O.Disk._lTime=t;
-                }
-                c.r++;
-                e.refresh();
-            };
-            e.refresh();
-            c.phr=null;
-            if(c.path){
-                var res;
-                c.phr={};
-                (c.ranges||[1]).forEach(function(i,j){
-                    if(res=O.Disk['_l'+language+(j||'')+e._.scope]){
-                        set.call([i,j],res);
-                    }else{
-                        O.req(this.vars({lang:language,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
-                    }
-                    
-                },c.path);
-            }else{
-                c.lang=language;
-            }
-        },
-        init:function(config){
-            if(config.ranges){config.r=0;}
-            O.combine(this._,config);
-            var last,t,t2;
-            if(last=O.Disk._lTime&&(t='otag[i18n]'.get()).length){
-                t=t[0].attr('i18n'),t2=O.Time.now;
-                t=t.indexOf(',')==-1?Number(t):t.split(',').map(Number);
-                var rem=[];
-                (config.ranges||[1]).forEach(function(i,j){
-                    if(t2<(typeof t=='number'?t:t[j])){
-                        rem=rem.concat(Object.keys(config.langs).map(function(l){return '_l'+l+(j||'')+(config.scope||'')}));
-                    }
-                });
-                console.log(rem);
-                O.Disk.rem(rem);
-            }
-            var lang=(O.Disk._lang||navigator.language.substr(0,2).toLowerCase());
-            this.set(Object.keys(this._.langs).indexOf(lang)==-1?'en':lang);
-            this._.div.prop({onchange:function(){
-                O.i18n.set(this.value);
-            }})
-            .has(
-                Object.keys(this._.langs).map(function(i,j){
-                    return'option'.prop({value:i,selected:i==this[0]}).set(this[1][i]);
-                },[this.get(),this._.langs]));
+            console.log(rem);
+            O.Disk.rem(rem);
         }
+       /*.has(
+                    Object.keys(this._.langs).map(function(i,j){
+                        return 'option'.prop({
+                            value:i,
+                            selected:i==this[0]
+                        }).set(this[1][i]);
+                    },[this.get(),this._.langs]));*/
+        return module.Class('i18n').prop({
+            _:opts,
+            dil:null,
+            onchange:function(){
+                O.i18n.dil=this.value;
+            },
+            get:function(phrase){
+                let e=this;
+                return new Promise(function(res,rej){
+                    e.ready.then(function(){
+                        var phr=Math.floor(phrase);
+                        phrase=Math.round(phrase%1*10);
+                        if(e._.phr[phr]){
+                            res(e._.phr[phr].split('=')[phrase]);
+                        }else{
+                            rej();
+                        }
+
+                    });
+                });
+            },
+            refresh:function(){
+                '[phrase]'.get().map(O.F.each('Lang'));
+                return this;
+            },
+            ready:new Promise(function(res,rej){
+
+                let i=setInterval(function(){
+                    let c=O.i18n._;
+                    if(c.r?(c.r==c.ranges.length):c.phr&&Object.keys(c.phr).length){
+                        clearInterval(i);
+                        res(1);
+                        
+                    }
+                },100);
+            }),
+            
+            init:function(config){
+                
+            }
+        }).resp({
+            dil:function(lang){
+                //O.Disk._lang=lang;
+                O.ready.then(b=>b.Class('rtl',O.i18n._.rtl.indexOf(O.Disk.dil)==-1));
+                let e=this,c=e._,set=function(res){
+                    O.Disk['_l'+e.dil+(this[1]||'')+e._.scope]=res;
+                    res=res.split('\n');
+                    if(e._.map){res=res.map(e._.map);}
+                    res.forEach(function(i,j){
+                        c.phr[j+this]=i;
+                    },this[0]||1);
+                    if(this[2]=='net'){
+                        var t=O.Disk._lTime||Array.from({length:c.ranges.length}).map(function(){return 0});
+                        t[this[1]]=O.Time.now;
+                        O.Disk._lTime=t;
+                    }
+                    c.r++;
+                    e.refresh();
+                };
+                e.refresh();
+                c.phr=null;
+                if(c.path){
+                    var res;
+                    c.phr={};
+                    c.r=0;
+                    (c.ranges||[1]).forEach(function(i,j){
+                        if(res=O.Disk['_l'+lang+(j||'')+e._.scope]){
+                            set.call([i,j],res);
+                        }else{
+                            O.req(this.vars({lang:lang,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
+                        }
+                    },c.path);
+                }
+                return this;
+            },
+        }).stor({
+            dil:'_lang',
+            lastLocal:'_lTime'
+        }).prop({dil:navigator.language.substr(0,2).toLowerCase()});
+        return this;
     }
     /*
         Nesne={a:1,b:2,_:'b,a'};
@@ -775,7 +810,10 @@ var O,Otag=O={
             if(this.phr&&this.phrSelect){
                 i=Number(i)+this.phrSelect(this.phr)/10;
             }
-            let type=this.attr('t')||this.t
+            let type=this.attr('t')||this.t;
+            if(typeof O.i18n=='function'){
+                throw new Error ('.Lang() called before i18n initialized , u18a kurulmadan .Lang() çağrıldı')
+            }
             O.i18n.get(i).then(function(p){
 
                 if(s.phr){
@@ -1134,7 +1172,8 @@ O.UI={
     M:function(arg){
         let a=O.toArray(arguments);
         return O.Model[a.shift()].apply('',a);
-    }
+    },
+    i18n:O.i18n
 }
 
 Otag.Model={
