@@ -664,11 +664,12 @@ var O,Otag=O={
             if(!(c instanceof Array)){
                 c=[c];
             }
-
-            this.className=c.reduce(function(a,b){
-                a=a.replace(new RegExp("(\\b"+b+")+"),"");
-                return (r?a:(a+" "+b)).replace(/\s{2}/g," ").trim();
-            },this.className);
+            if(c.length&&c[0]!=null){
+                this.className=c.reduce(function(a,b){
+                    a=a.replace(new RegExp("(\\b"+b+")+"),"");
+                    return (r?a:(a+" "+b)).replace(/\s{2}/g," ").trim();
+                },this.className);
+            }
             return this;
         },
         //create UI layout
