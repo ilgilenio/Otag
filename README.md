@@ -2,7 +2,8 @@
 
 Değişen ve gelişen günümüz teknolojisine layık **Hızlı**, **Yalın**, **Yenilikçi** “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.
 
-![](https://camo.githubusercontent.com/a404e7f6b4b5c1a9914b1a7c4c1c74c73022a358/68747470733a2f2f7062732e7477696d672e636f6d2f6d656469612f42537948513038435941416d4778613f666f726d61743d6a7067)
+![OtağJS](https://images.unsplash.com/photo-1489421382202-f7ec0cfd96f7?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=5b82cdc8d05177379792872591e0f2a7&auto=format&fit=crop&w=1350&q=80)
+> **Kırgızistan'daki bir Otağ** Fotoğraf: [Oziel Gomez](https://unsplash.com/@ozgomz)
 
 
 #### İlkeler
@@ -17,11 +18,13 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 * En gerekli ve temel özellikleri barındırmak
 
 #### Sürüm
-1.0.0 (Z)
+Sürümleri ve etkinlikleri [takip edin 📆](https://ilgilenio.github.io/Otag/cizelge/)
+
+1.1 (A)
 
 [otag.js](https://ilgilenio.github.io/Otag/otag.js) (Geliştirme)
 
-[otag.min.js](https://ilgilenio.github.io/Otag/otag.min.js) (**12.2kb**, _4.5kb GZIP_)
+[otag.min.js](https://ilgilenio.github.io/Otag/otag.min.js) (**15.2kb**, _5.8kb GZIP_)
 
 
 #### Belgelendirme
@@ -32,3 +35,4 @@ MIT Lisansı ile korunmaktadır.
 
 #### Katılım sağlama
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
+[Tasarı gözlem yazıtımız](https://tree.taiga.io/project/ilgilenio-otag/kanban)'a gözatın
