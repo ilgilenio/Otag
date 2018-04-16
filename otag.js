@@ -391,7 +391,7 @@ var O,Otag=O={
         opts=O.combine({
             langs:{tr:'Türkçe'},
             map:null,
-            rtl:['ar'],
+            rtl:['ar', 'fa'],
             div:'select'.prop({onchange:function(){this.dil=this.value;}}),
             model:function(i){
                 return 'option'.attr('value',i).set(this[i]);
@@ -416,10 +416,11 @@ var O,Otag=O={
             O.Disk.rem(rem);
             console.log(rem);
         }
-        return O.i18n='select'
+        opts.model=opts.model.bind(opts.langs);
+        return O.i18n=opts.div
         .has(
             Object.keys(opts.langs).reduce(function(s,i){
-                s[i]='option'.prop({value:i}).set(opts.langs[i]);
+                s[i]=opts.model(i);
                 return s;
             },{}))
         .prop({
