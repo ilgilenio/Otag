@@ -5,7 +5,7 @@
   |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
           /|
 *         \|    2016-2018 ilgilenio® 
-*               Otag Çatı Çalışması 1.0.9
+*               Otag Çatı Çalışması 1.1 kararlı
 *               https://github.com/ilgilenio/Otag/wiki
 *               MIT ile korunmaktadır
 */
@@ -49,7 +49,7 @@ var O,Otag=O={
       }
       O.Page=O.resp.call({
           routes:opts.routes,
-          route:function(hash){
+          route:function(hash,replace){
               if(hash instanceof Object){
                   hash=hash.state||'';
               }
@@ -68,7 +68,7 @@ var O,Otag=O={
                   if(r.wake){r.wake.apply(r,h);}else{opts.handler(r);}
               }
               //window.history.pushState(hash,null,'#/'+hash);
-              window.history.replaceState(hash,null,'#/'+hash);
+              window.history[(replace?'replace':'push')+'State'](hash,null,'#/'+hash)
           }
       },{now:function(now){
           // Önceki Beti atıl duruma sok
@@ -87,7 +87,7 @@ var O,Otag=O={
           }
           
           this.title=title[0];
-          this.route(decodeURI(location.hash.substring(2)));
+          this.route(decodeURI(location.hash.substring(2)),1);
           window.onpopstate=this.route.bind(this);
       };
       O.ready.then(init.bind(O.Page));
