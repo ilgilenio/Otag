@@ -20,60 +20,80 @@ var O,Otag=O={
         https://ilgilenio.github.io/Otag/ornekler/Atasozleri
     */
     
-    Page:function(){
-        Element.prototype.router=function(r){
-            return this.resp('route',function(route){
-                if(this.route){
-                    delete  O.Page.routes[this.route];
-                }
-                let s=this;
-                O.Page.routes[route]=function(r){
-                    s.wakeUp();
-                }
-            }).prop('route',r);
-        }
-        O.Page=O.resp.call({
-            routes:{},
-            route:function(hash){
-                if(hash instanceof Object){
-                    hash=hash.state||'';
-                }
-                var h=hash.split(':');
-                if(h[0]==''&&this.routes.index){
-                    return this.route('index');
-                }
-                let r,r1;
-                if(r=this.routes[h.shift()]){
-                    if(typeof r=='string'){return this.route(r);}
-                    if(typeof r=='function'){r.apply(null,h);}
-                    if(r instanceof Element){this.now=r;r.wakeUp(hash);}
-                    //window.history.pushState(hash,null,'#/'+hash);
-                    window.history.replaceState(hash,null,'#/'+hash);
-                }
-            }
-        },{now:function(now){
-            //Eğer önceki Bet'in Uykusu varsa ninni söyle
-            if(this.now&&this.now.sleep){
-                this.now.sleep();
-            }
-            this.title.set({page:now.pageTitle||''});
-        }});
-        let init=function(){
-            var title;
-            if(!(title='title'.get()).length){
-                document.head.append(title=['title'.init()])
-            }
-            if(title[0].innerHTML.indexOf('page₺')==-1){
-                title[0].set('page₺')
-            }
-            
-            this.title=title[0];
-            this.route(decodeURI(location.hash.substring(2)));
-            window.onpopstate=this.route.bind(this);
-        };
-        O.ready.then(init.bind(O.Page));
-        return O.Page;
+    Page:function(opts){
+      opts=O.combine({
+          routes:{},
+          none:"Bulunamadı".prop({
+             name: 'Bulunamadı'
+          }).layout([
+             ["center", [
+              'h1'.set('Bet Bulunamadı'),
+              'p'.set("Aradığınız bet bulunamadı")
+             ]]
+          ]),
+          handler:function(elem){
+              document.body.html(elem);
+          }
+      },opts);
+      opts.routes.none=opts.none;
+      Element.prototype.router=function(r){
+          return this.resp('route',function(route){
+              if(this.route){
+                  delete  O.Page.routes[this.route];
+              }
+              let s=this;
+              O.Page.routes[route]=function(r){
+                  s.wake();
+              }
+          }).prop('route',r);
+      }
+      O.Page=O.resp.call({
+          routes:opts.routes,
+          route:function(hash){
+              if(hash instanceof Object){
+                  hash=hash.state||'';
+              }
+              var h=hash.split(':');
+              if(h[0]==''&&this.routes.index){
+                  return this.route('index');
+              }
+              let r,r1;
+              if(!(r=this.routes[h.shift()])){
+                 r=this.none;
+              }
+              if(typeof r=='string'){return this.route(r);}
+              if(typeof r=='function'){r.apply(null,h);}
+              if(r instanceof Element){
+                  this.now=r;
+                  if(r.wake){r.wake.apply(r,h);}else{opts.handler(r);}
+              }
+              //window.history.pushState(hash,null,'#/'+hash);
+              window.history.replaceState(hash,null,'#/'+hash);
+          }
+      },{now:function(now){
+          // Önceki Beti atıl duruma sok
+          if(this.now&&this.now.idle){
+              this.now.idle();
+          }
+          this.title.set({page:now.name||''});
+      }});
+      let init=function(){
+          var title;
+          if(!(title='title'.get()).length){
+              document.head.append(title=['title'.init()])
+          }
+          if(title[0].innerHTML.indexOf('page₺')==-1){
+              title[0].set('page₺')
+          }
+          
+          this.title=title[0];
+          this.route(decodeURI(location.hash.substring(2)));
+          window.onpopstate=this.route.bind(this);
+      };
+      O.ready.then(init.bind(O.Page));
+      return O.Page;
     },
+
     /*
         let chain=O.Chain([f(),g(),h()]);
         chain(ilkİşleveGirdiler).then(başarı).catch(başarısız);
