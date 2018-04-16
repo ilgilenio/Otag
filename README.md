@@ -17,13 +17,15 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 * En gerekli ve temel özellikleri barındırmak
 
 #### Sürüm
-1.0.0 (Z)
+Sürümleri ve etkinlikleri [takip edin 📆](https://ilgilenio.github.io/Otag/cizelge/)
+
+1.1 (A)
 
 Sürümleri ve etkinlikleri [takip edin 📆](https://ilgilenio.github.io/Otag/cizelge/)
 
 [otag.js](https://ilgilenio.github.io/Otag/otag.js) (Geliştirme,son)
 
-[otag.min.js](https://ilgilenio.github.io/Otag/otag.min.js) (1.0.0 **12.2kb**, _4.5kb GZIP_)
+[otag.min.js](https://ilgilenio.github.io/Otag/otag.min.js) (**15.2kb**, _5.8kb GZIP_)
 
 
 #### Belgelendirme

@@ -1,0 +1,17 @@
+{
+  "name": "otag",
+  "version": "1.1",
+  "description": "Değişen ve gelişen günümüz teknolojisine layık **Hızlı**, **Yalın**, **Yenilikçi** “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.",
+  "main": "otag.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "git+https://github.com/ilgilenio/Otag.git",
+  "keywords": [],
+  "author": "ilgilenio®",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ilgilenio/Otag/issues"
+  },
+  "homepage": "https://github.com/ilgilenio/Otag#readme"
+}
