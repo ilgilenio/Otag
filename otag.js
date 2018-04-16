@@ -5,7 +5,7 @@
   |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
           /|
 *         \|    2016-2018 ilgilenio® 
-*               Otag Çatı Çalışması 1.0.3
+*               Otag Çatı Çalışması 1.0.9
 *               https://github.com/ilgilenio/Otag/wiki
 *               MIT ile korunmaktadır
 */
@@ -17,7 +17,7 @@ var O,Otag=O={
         Öge uyandırabilirsiniz.
         
         Örnek kullanım
-        https://github.com/ilgilenio/ilgilenio.github.io/tree/master/Otag/ornekler/Atasözleri
+        https://ilgilenio.github.io/Otag/ornekler/Atasozleri
     */
     
     Page:function(){
@@ -29,7 +29,6 @@ var O,Otag=O={
                 let s=this;
                 O.Page.routes[route]=function(r){
                     s.wakeUp();
-                    
                 }
             }).prop('route',r);
         }
@@ -150,7 +149,7 @@ var O,Otag=O={
     },
     /*
         O.stor.call({},{prop:storekey})
-        O.stor.call({},prop,storekey)
+        O.stor.call({},'prop','storekey')
 
         prop    : Nesnede özellik adı
         storekey: Yığınakta tutulacak değişkenin adı
@@ -163,15 +162,16 @@ var O,Otag=O={
         }
         return Object.keys(prop).reduce(function(e,p){
             var store=prop[p],v;
-            // Bu özellikte daha önceden tanımlanmış bir duyar var mı
-            if((v=O.Disk[store])!=null){
-                e[p]=v;
-            }/*else if(e[p]){
-                O.Disk[store]=e[p];
-            }*/
-            return O.resp.call(e,p,function(val){
+            e=O.resp.call(e,p,function(val){
                 O.Disk[store]=val;
             });
+            if((v=O.Disk[store])!=null){
+                e[p]=v;
+                e.__lookupSetter__(p).call(e,e[p],1);
+            }else if(e[p]!=undefined){
+                e.__lookupSetter__(p).call(e,e[p],1);
+            }
+            return e;
         },this||{});
     }
     /*
@@ -264,12 +264,12 @@ var O,Otag=O={
         today:0,now:0,
         tomorrow:-864e5
     },{get:function(a,b,c){
-        let D=new Date(+new Date-a[b]);
+        let t=new Date(+new Date-a[b]);
         if(b!='now'){
-            D.setHours(0);
-            D.setMinutes(0);
-            D.setSeconds(0);
-        };return Math.floor(D.getTime()/1000)}})
+            t.setHours(0);
+            t.setMinutes(0);
+            t.setSeconds(0);
+        };return Math.floor(t.getTime()/1000)}})
     /*
         O.Disk.açar = 'değer'
         O.Disk.açar             // 'değer'
@@ -355,7 +355,7 @@ var O,Otag=O={
                                 r=this.response;
                             }
                             res(r);
-                        }else{rej('');}
+                        }else{rej({error:'empty response'});}
                     }else{
                         rej({error:{code:this.status}});
                     }
@@ -368,42 +368,82 @@ var O,Otag=O={
     /*
         Uluslararasılaştırma(U18A) Betliği
     */
-    ,i18n:{
-        _:{lang:null,map:null,rtl:[],ranges:[1],scope:''},
-        get:function(phrase){
-            let e=this;
-            return new Promise(function(res,rej){
-                e.ready.then(function(){
-                    var phr=Math.floor(phrase);
-                    phrase=Math.round(phrase%1*10);
-                    if(e._.phr[phr]){
-                        res(e._.phr[phr].split('=')[phrase]);
-                    }else{
-                        rej();
-                    }
-
-                });
-            });
-        },
-        refresh:function(){
-            ('[phrase]').get().map(O.F.each('Lang'));
-        },
-        ready:new Promise(function(res,rej){
-
-            let i=setInterval(function(){
-                let c=O.i18n._;
-                if(c.r?(c.r==c.ranges.length):c.phr&&Object.keys(c.phr).length){
-                    clearInterval(i);
-                    res(1);
-                    c.div.value=c.lang;
+    ,i18n:function(opts){
+        opts=O.combine({
+            langs:{tr:'Türkçe'},
+            map:null,
+            rtl:['ar'],
+            div:'select'.prop({onchange:function(){this.dil=this.value;}}),
+            model:function(i){
+                return 'option'.attr('value',i).set(this[i]);
+            },
+            ranges:[1],
+            scope:''
+        },opts); //Ön tanımlı seçenekler
+        var def=O.Disk._lang||opts.lang||navigator.language.substr(0,2).toLowerCase();
+        if(!opts[def]){
+          def=Object.keys(opts.langs)[0];
+        }
+        var l,t;
+        if((l=O.Disk._lTime)&&(t='otag[i18n]'.get()).length){
+            t=t[0].attr('i18n'),
+            t=t.indexOf(',')==-1?Number(t):t.split(',').map(Number);
+            var rem=[];
+            opts.ranges.forEach(function(i,j){
+                if((typeof l=='number'?l:l[j])<(typeof t=='number'?t:t[j])){
+                    rem=rem.concat(Object.keys(opts.langs).map(function(l){return '_l'+l+(j||'')+(opts.scope||'')}));
                 }
-            },100);
-        }),
-        set:function(language){
-            O.Disk._lang=language;
+            });
+            O.Disk.rem(rem);
+            console.log(rem);
+        }
+        return O.i18n='select'
+        .has(
+            Object.keys(opts.langs).reduce(function(s,i){
+                s[i]='option'.prop({value:i}).set(opts.langs[i]);
+                return s;
+            },{}))
+        .prop({
+            _:opts,
+            onchange:function(){
+                this.dil=this.value;
+            },
+            get:function(phrase){
+                let e=this;
+                return new Promise(function(res,rej){
+                    e.ready.then(function(){
+                        var phr=Math.floor(phrase);
+                        phrase=Math.round(phrase%1*10);
+                        if(e._.phr[phr]){
+                            res(e._.phr[phr].split('=')[phrase]);
+                        }else{
+                            rej();
+                        }
+    
+                    });
+                });
+            },
+            refresh:function(){
+                ('[phrase]').get().map(O.F.each('Lang'));
+            },
+            ready:new Promise(function(res,rej){
+    
+                let i=setInterval(function(){
+                    let c=O.i18n._;
+                    if(c.r?(c.r==c.ranges.length):c.phr&&Object.keys(c.phr).length){
+                        clearInterval(i);
+                        res(1);
+                        O.i18n.dil=c.lang;
+                    }
+                },100);
+            })
+        }).resp({
+        dil:function(dil){
+            this.View[dil].selected=true;
+            O.Disk._lang=dil;
             O.ready.then(b=>b.Class('rtl',O.i18n._.rtl.indexOf(O.Disk._lang)==-1));
             let e=this,c=e._,set=function(res){
-                c.lang=language;
+                c.lang=dil;
                 O.Disk['_l'+c.lang+(this[1]||'')+e._.scope]=res;
                 res=res.split('\n');
                 if(e._.map){res=res.map(e._.map);}
@@ -411,7 +451,7 @@ var O,Otag=O={
                     c.phr[j+this]=i;
                 },this[0]||1);
                 if(this[2]=='net'){
-                    var t=O.Disk_lTime||Array.from({length:c.ranges.length}).map(function(){return 0});
+                    var t=O.Disk._lTime||Array.from({length:c.ranges.length}).map(function(){return 0});
                     t[this[1]]=O.Time.now;
                     O.Disk._lTime=t;
                 }
@@ -424,44 +464,23 @@ var O,Otag=O={
                 var res;
                 c.phr={};
                 (c.ranges||[1]).forEach(function(i,j){
-                    if(res=O.Disk['_l'+language+(j||'')+e._.scope]){
+                    if(res=O.Disk['_l'+dil+(j||'')+e._.scope]){
                         set.call([i,j],res);
                     }else{
-                        O.req(this.vars({lang:language,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
+                        O.req(this.vars({lang:dil,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
                     }
                     
                 },c.path);
             }else{
-                c.lang=language;
+                c.lang=dil;
             }
-        },
-        init:function(config){
-            if(config.ranges){config.r=0;}
-            O.combine(this._,config);
-            var last,t,t2;
-            if(last=O.Disk._lTime&&(t='otag[i18n]'.get()).length){
-                t=t[0].attr('i18n'),t2=O.Time.now;
-                t=t.indexOf(',')==-1?Number(t):t.split(',').map(Number);
-                var rem=[];
-                (config.ranges||[1]).forEach(function(i,j){
-                    if(t2<(typeof t=='number'?t:t[j])){
-                        rem=rem.concat(Object.keys(config.langs).map(function(l){return '_l'+l+(j||'')+(config.scope||'')}));
-                    }
-                });
-                console.log(rem);
-                O.Disk.rem(rem);
-            }
-            var lang=(O.Disk._lang||navigator.language.substr(0,2).toLowerCase());
-            this.set(Object.keys(this._.langs).indexOf(lang)==-1?'en':lang);
-            this._.div.prop({onchange:function(){
-                O.i18n.set(this.value);
-            }})
-            .has(
-                Object.keys(this._.langs).map(function(i,j){
-                    return'option'.prop({value:i,selected:i==this[0]}).set(this[1][i]);
-                },[this.get(),this._.langs]));
-        }
+            //this.View[this.dil].selected=false;
+            
+        }}).prop({dil:def});
     }
+
+
+    
     /*
         Nesne={a:1,b:2,_:'b,a'};
         Nesne={a:1,b:2,_:['b','a']};
@@ -493,17 +512,16 @@ var O,Otag=O={
             }
             return s;
         },
-
-        //tanıma duyarlı özellik tanımlar O.resp incele!
+        // tanıma duyarlı özellik tanımlar
         resp:function(prop,f){
             return O.resp.call(this,prop,f);
         },
-        //barındırılan özellik tanımlar
+        // barındırılan özellik tanımlar
         stor:function(prop,key){
             return O.stor.call(this,prop,key);
         },
         /*
-            String.prototype.extend incele
+            String.prototype.extends incele
         */
         extend:function(component,args){
             if(O.UI[component]){
@@ -519,7 +537,7 @@ var O,Otag=O={
             .destroy{
                 transition: .2s linear; // Geçiş 200ms
             }
-            Öge.destroy(0,200)          // hemen yoketmeye başla 200ms sonra kaldır
+            Öge.destroy(0,200)          // hemen yoketmeye başla 200ms sonra belgeden kaldır
 
             Öge'yi yavaşça siler
         */
@@ -547,7 +565,6 @@ var O,Otag=O={
                 this.__iParams[0].apply(this,this.__iParams[1]);
             }
             return this;
-
         },
         /*
             Öge='Öge'.disp( );      // Gizle
@@ -616,11 +633,12 @@ var O,Otag=O={
             if(!(c instanceof Array)){
                 c=[c];
             }
-
-            this.className=c.reduce(function(a,b){
-                a=a.replace(new RegExp("(\\b"+b+")+"),"");
-                return (r?a:(a+" "+b)).replace(/\s{2}/g," ").trim();
-            },this.className);
+            if(c[0]&&c[0]!=''){
+                this.className=c.reduce(function(a,b){
+                    a=a.replace(new RegExp("(\\b"+b+")+"),"");
+                    return (r?a:(a+" "+b)).replace(/\s{2}/g," ").trim();
+                },this.className);
+            }
             return this;
         },
         //create UI layout
@@ -646,12 +664,10 @@ var O,Otag=O={
                 (lay._||Object.keys(lay)).map(function(i){
                     if(lay[i] instanceof Element){
                         return lay[i];
-                    }else if(lay[i] instanceof Array){
-                        return s.append(lay[i]);
                     }else if(lay[i] instanceof Object){
-                        return (i).layout(lay[i],s);
+                        return i.layout2(lay[i],s);
                     }else{
-                        return s.V(i)||i.init();
+                        return s.V(lay[i])||lay[i].init();
                     }
                 })
             );
@@ -909,11 +925,8 @@ var O,Otag=O={
             if(isFinite(s)&&s!=''&&O.i18n){
                 d[0].set(s,1).Class('label');
             }
-            if(d[1].length){
-                d[0].Class(d[1]);
-            }
             //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
-            d[0].attr(d[2]);
+            d[0].Class(d[1]).attr(d[2]);
             if(d[3].length){
                 d[0].id=d[3][0];
             }
@@ -924,7 +937,7 @@ var O,Otag=O={
             return d[0];
         },
         /* 
-            '#ResimKutusu'.extend('Bediz')
+            '#ResimKutusu'.extends('Bediz')
 
             Bileşeni belgede bulunan Ögeler ile çağırır.
         */
