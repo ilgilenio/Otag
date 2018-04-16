@@ -34,7 +34,7 @@ var O,Otag=O={
             handler:function(Oge){
                 document.body.html(Oge);
             }
-        },opts);
+        },opts||{});
         opts.routes.none=opts.none;
         Element.prototype.router=function(r){
             return this.resp('route',function(route){
@@ -49,7 +49,7 @@ var O,Otag=O={
         }
         O.Page=O.resp.call({
             routes:opts.routes,
-            route:function(hash,replace){
+            route:function(hash,push){
                 if(hash instanceof Object){
                     hash=hash.state||'';
                 }
@@ -67,7 +67,7 @@ var O,Otag=O={
                     this.now=r;
                     if(r.wake){r.wake.apply(r,h);}else{opts.handler(r);}
                 }
-                window.history[(replace?'replace':'push')+'State'](hash,null,'#/'+hash)
+                window.history[(push?'push':'replace')+'State'](hash,null,'#/'+hash)
             }
         },{now:function(now){
             // Önceki Beti atıl duruma sok
@@ -896,7 +896,7 @@ var O,Otag=O={
                     e.preventDefault();
                     e.stopPropagation();
                     if(O.Page!='function'){
-                        O.Page.route(this.addr);
+                        O.Page.route(this.addr,1);
                     }
                 }
             }
