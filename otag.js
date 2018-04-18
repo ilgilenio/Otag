@@ -63,7 +63,7 @@ var O,Otag=O={
                      let bu=this;
                      Object.keys(this.routes).reduce(function(t,n){
                        if(n.match(/^[\/\#\@](.+)[\/\#\@]$/)){
-                         dgsk=new RegExp(n.replace(/^([\/\#\@])/, '^').replace(/([\/\#\@])$/, '$')).exec(r1);
+                         dgsk=new RegExp(n.replace(/^([\/\#\@])/, '^').replace(/([\/\#\@])$/, '\/*$')).exec(r1);
                          if(dgsk){dgsk.shift();r=bu.routes[n];}
                          else r=bu.routes.none;
                        }
