@@ -57,15 +57,24 @@ var O,Otag=O={
                 if(h[0]==''&&this.routes.index){
                     return this.route('index');
                 }
-                let r,r1;
-                if(!(r=this.routes[h.shift()])){
-                   r=this.none;
+                let r,r1=h.shift(),dgsk;
+                if(!(r=this.routes[r1])){
+                   if(opts.regkeys){
+                     let bu=this;
+                     Object.keys(this.routes).reduce(function(t,n){
+                       if(n.match(/^[\/\#\@](.+)[\/\#\@]$/)){
+                         dgsk=new RegExp(n.replace(/^([\/\#\@])/, '^').replace(/([\/\#\@])$/, '$')).exec(r1);
+                         if(dgsk){dgsk.shift();r=bu.routes[n];}
+                         else r=bu.routes.none;
+                       }
+                     })
+                   }else r=this.routes.none;
                 }
                 if(typeof r=='string'){return this.route(r);}
                 if(typeof r=='function'){r.apply(null,h);}
                 if(r instanceof Element){
                     this.now=r;
-                    if(r.wake){r.wake.apply(r,h);}else{opts.handler(r);}
+                    if(r.wake){r.wake.apply(r,dgsk?[h,dgsk]:h);}else{opts.handler(r);}
                 }
                 window.history[(push?'push':'replace')+'State'](hash,null,'#/'+hash)
             }
