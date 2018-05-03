@@ -1,6 +1,6 @@
 
 <a href="https://github.com/ilgilenio/Otag/wiki">
-    <img src="https://ilgilenio.github.io/Otag/img/O1.png" alt="OtağJS">
+    <img src="https://ilgilenio.github.io/Otag/img/O2.png" alt="OtağJS">
   </a>
   
 ### Otağ Çatı Çalışması
