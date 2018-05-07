@@ -145,7 +145,7 @@ var O,Otag=O={
                 if(typeof r=='function'){r.apply(null,h);}
                 if(r instanceof Element){
                     this.now=r;
-                    if(r.wake){r.wake.apply(r,dgsk?[h,dgsk]:h);}else{opts.handler(r);}
+                    if(r.wake){r.wake.apply(r,[dgsk,h]);}else{opts.handler(r);}
                 }
                 window.history[(push?'push':'replace')+'State'](hash,null,'#/'+hash)
             }
