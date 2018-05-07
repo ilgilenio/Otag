@@ -19,8 +19,79 @@ var O,Otag=O={
         Örnek kullanım
         https://ilgilenio.github.io/Otag/ornekler/Atasozleri
     */
-    
     Page:function(opts){
+        opts=O.combine({
+            routes:{},
+            none:"Bulunamadı".prop({
+               name: 'Bulunamadı'
+            }).layout([
+               ["center", [
+                'h1'.set('Bet Bulunamadı'),
+                'p'.set("Aradığınız bet bulunamadı")
+               ]]
+            ]),
+            handler:function(Oge){
+                document.body.html(Oge);
+            }
+        },opts||{});
+        opts.routes.none=opts.none;
+        Element.prototype.router=function(r){
+            return this.resp('route',function(route){
+                if(this.route){
+                    delete  O.Page.routes[this.route];
+                }
+                let s=this;
+                O.Page.routes[route]=function(r){
+                    s.wake();
+                }
+            }).prop('route',r);
+        }
+        O.Page=O.resp.call({
+            routes:opts.routes,
+            route:function(hash,push){
+                if(hash instanceof Object){
+                    hash=hash.state||'';
+                }
+                var h=hash.split(':');
+                if(h[0]==''&&this.routes.index){
+                    return this.route('index');
+                }
+                let r,r1;
+                if(!(r=this.routes[h.shift()])){
+                   r=this.none;
+                }
+                if(typeof r=='string'){return this.route(r);}
+                if(typeof r=='function'){r.apply(null,h);}
+                if(r instanceof Element){
+                    this.now=r;
+                    if(r.wake){r.wake.apply(r,h);}else{opts.handler(r);}
+                }
+                window.history[(push?'push':'replace')+'State'](hash,null,'#/'+hash)
+            }
+        },{now:function(now){
+            // Önceki Beti atıl duruma sok
+            if(this.now&&this.now.idle){
+                this.now.idle();
+            }
+            this.title.set({page:now.name||''});
+        }});
+        let init=function(){
+            var title;
+            if(!(title='title'.get()).length){
+                document.head.append(title=['title'.init()])
+            }
+            if(title[0].innerHTML.indexOf('page₺')==-1){
+                title[0].set('page₺')
+            }
+            
+            this.title=title[0];
+            this.route(decodeURI(location.hash.substring(2)),1);
+            window.onpopstate=this.route.bind(this);
+        };
+        O.ready.then(init.bind(O.Page));
+        return O.Page;
+    },
+    Page2:function(opts){
         opts=O.combine({
             routes:{},
             none:"Bulunamadı".prop({
@@ -100,6 +171,140 @@ var O,Otag=O={
         };
         O.ready.then(init.bind(O.Page));
         return O.Page;
+    },
+    Page3:function(opts){
+        opts=O.combine({
+            routes:{},
+            none:"Bulunamadı".prop({
+               name: 'Bulunamadı'
+            }).layout([
+               ["center", [
+                'h1'.set('Bet Bulunamadı'),
+                'p'.set("Aradığınız bet bulunamadı")
+               ]]
+            ]),
+            initialResolver:function(loc){
+                // belge yüklendiğinde #/betadı şeklindeki bulunağı çözümler
+                return decodeURI(location.hash.substring(2))
+            },
+            /* bu işlev bir söz olmalı çözüm olarak 3 alanlı dizi döndürmelidir:
+             * [
+             *   Belirlenen Bet,            * örn: kullanıcı
+             *   Beti uyandırma girdileri,  *      123, yazılar
+             *   URLde çıkacak tam yol      *      #/kullanıcı/123/yazılar
+             * ]
+             */
+            resolver:(function(hash){
+                // #/betadı şeklinde url döndürür
+                var page,
+                fullpath='#/'+hash,
+                args=hash.split(':');
+                if(r=O.Page.routes[args.shift()]){
+                    r={bet:r,args:args,fp:fullpath,hash:hash}
+                }else{
+                    r={bet:r,args:[],fp:fullpath,hash:'none'}
+                };
+                return r;
+            }).prom(),
+            handler:function(Oge){
+                document.body.html(Oge);
+            }
+        },opts||{});
+        opts.routes.none=opts.none;
+        Element.prototype.router=function(r){
+            return this.resp('route',function(route){
+                if(this.route){
+                    delete  O.Page.routes[this.route];
+                }
+                let s=this;
+                O.Page.routes[route]=function(r){
+                    s.wake();
+                }
+            }).prop('route',r);
+        }
+        let resolveComplete=(function(r){
+            if(r){
+                if(typeof r=='string'){
+                    this.route(r);
+                }else if(r instanceof Object){
+                    r.bet.wake.call(r.bet,r.hash);
+                    window.history[(push?'push':'replace')+'State'](r.hash,null,r.fp)
+                }
+            } if(r instanceof Element){
+                    this.now=r;
+                    if(r.wake){r.wake.apply(r,args);}else{opts.handler(r,args);}
+                }
+        }).bind(this)
+        O.Page=O.resp.call({
+            routes:opts.routes,
+            route:function(hash,push){
+
+                if(hash instanceof Object){
+                    hash=hash.state||'';
+                }
+                if(['/',''].indexOf(hash)>-1&&this.routes.index){
+                    return this.route('index');
+                }
+                if(!(r=this.routes[hash])){
+                    return opts.resolver(hash).then(resolveComplete).catch(function(){
+                        resolveComplete(false);
+                    });
+                }else{
+                    resolve({r:1});
+                }
+                
+            }
+        },{now:function(now){
+            // Önceki Beti atıl duruma sok
+            if(this.now&&this.now.idle){
+                this.now.idle();
+            }
+            this.title.set({page:now.name||''});
+        }});
+        let init=function(){
+            var title;
+            if(!(title='title'.get()).length){
+                document.head.append(title=['title'.init()])
+            }
+            if(title[0].innerHTML.indexOf('page₺')==-1){
+                title[0].set('page₺')
+            }
+            
+            this.title=title[0];
+            this.route(this.initialResolver(location),1);
+            window.onpopstate=this.route.bind(this);
+        };
+        O.ready.then(init.bind(O.Page));
+        return O.Page;
+    },
+    Sock:function(opts){
+        opts=O.combine({
+            url:'/',
+        },typeof opts =='string'?{url:opts}:opts);
+        
+        const socket = new WebSocket('wss://'+opts.url);
+
+        // Connection opened
+        socket.addEventListener('open', function (event) {
+            socket.send('Hello Server!');
+        });
+
+        // Listen for messages
+        socket.addEventListener('message', function (event) {
+            console.log('Message from server ', event.data);
+        });
+        return {
+            connected:false,
+            on:function(trig,cb){
+                if(typeof trig=='string'){
+                    trig={[trig]:cb};
+                }
+                return Object.keys(trig).forEach(function(e){
+                    sock.addEventListener(e,trig[e]);
+                });
+                return this;
+            }
+        }
     },
 
     /*
@@ -728,7 +933,7 @@ var O,Otag=O={
                     e=e.reverse();
                 }
                 e.forEach(function(i){
-                    if(!(i instanceof Element)){i=i.init();}
+                    if(!(i instanceof Node)){i=i.init();}
                     this.appendChild(i);
                 },this);
             }
@@ -849,7 +1054,12 @@ var O,Otag=O={
                     this.Lang(phrase,t);
                 }else if(t instanceof Object){
                     if(!this.main){this.main=this.innerHTML;}
-                    this.innerHTML=this.main.vars(this.data=t);
+                    if(t._){
+                        this.innerHTML="";
+                        this.append(this.main.varsX(this.data=t));
+                    }else{
+                        this.innerHTML=this.main.vars(this.data=t);
+                    }
                 }else{
                     this.innerHTML=t;
                 }
@@ -858,7 +1068,25 @@ var O,Otag=O={
                     this.Lang(t,phr==1?null:phr);
                 }else{
                     this.main=t;
-                    this.innerHTML=this.main.vars(this.data=phr);
+                    /*let e,r,i;
+                    if((r=/(\:[0-9A-Za-zşŞüÜöÖçÇİığĞ]+)+/g).test(t)){
+                        r=new RegExp(r);
+                        let j=0;
+                        while((e=r.exec(t))&&r.lastIndex!=i){
+                            i=r.lastIndex;
+                            if(this.V(e[0].substring(1))){
+                                t= t.replaceAll(e[0],j+'__₺');
+                                phr[(j++)+'__']=this.V(e[0].substring(1));
+                            }
+                        }
+                        if(j){phr._=1};
+                    }*/
+                    if(phr._){
+                        this.innerHTML="";
+                        this.append(this.main.varsX(this.data=phr));
+                    }else{
+                        this.innerHTML=this.main.vars(this.data=phr);
+                    }
                 }
             }
             return this.Class('def',1);
@@ -1008,6 +1236,18 @@ var O,Otag=O={
             return Object.keys(vars).reduce(function(m,v){
                 return m.replace(new RegExp("("+v+"[₺|\$|₸|₼])+"),vars[v]);
             },this)
+        },
+        varsX:function(vars){
+            vars=typeof vars=='object'?vars:arguments;
+            let v= Object.keys(vars).reduce(function(m,v){
+                return m.replace(new RegExp("("+v+"[₺|\$|₸|₼])+"),vars[v] instanceof Element?'|'+v+'|':vars[v]);
+            },this).split('|');
+            v=v.map(function(i,j){
+                return j%2?vars[i]:document.createTextNode(i);
+
+            })
+            console.log(v);
+            return v;
         },
         replaceAll:function(f,r){
             var s=this;
