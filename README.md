@@ -1,7 +1,5 @@
 
-<a href="https://github.com/ilgilenio/Otag/wiki">
-    <img src="https://ilgilenio.github.io/Otag/img/O2.png" alt="OtağJS">
-  </a>
+
   
 ### Otağ Çatı Çalışması
 
@@ -39,3 +37,6 @@ MIT Lisansı ile korunmaktadır.
 #### Katılım sağlama
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
 [Tasarı gözlem yazıtımız](https://tree.taiga.io/project/ilgilenio-otag/kanban)'a gözatın
+<a href="https://github.com/ilgilenio/Otag/wiki">
+    <img src="https://ilgilenio.github.io/Otag/img/alt.png" alt="OtağJS">
+  </a>
