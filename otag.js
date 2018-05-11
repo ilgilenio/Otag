@@ -280,32 +280,48 @@ var O,Otag=O={
     Sock:function(opts){
         opts=O.combine({
             url:'/',
+            open: function(){}
         },typeof opts =='string'?{url:opts}:opts);
         
-        const socket = new WebSocket('wss://'+opts.url);
+        var socket;
+        var conn = function(){
+          socket = new WebSocket(opts.url.startsWith('ws://') ? opts.url : 'wss://'+opts.url);
+        };
+        conn();
+        let olay;
 
         // Connection opened
-        socket.addEventListener('open', function (event) {
-            socket.send('Hello Server!');
-        });
+        socket.addEventListener('open', opts.open);
 
         // Listen for messages
         socket.addEventListener('message', function (event) {
-            console.log('Message from server ', event.data);
+            let veri = event.data.split(",")
+            olay = veri[0];
+            veri.shift();
+            socket.dispatchEvent(new MessageEvent(olay, {data: veri.length==1?veri[0]:veri}));
         });
+
+        socket.addEventListener('close', function(ev){
+          conn();
+        })
         return {
-            connected:false,
+            connected:socket.readyState,
             on:function(trig,cb){
                 if(typeof trig=='string'){
                     trig={[trig]:cb};
                 }
                 return Object.keys(trig).forEach(function(e){
-                    sock.addEventListener(e,trig[e]);
+                    socket.addEventListener(e,trig[e]);
                 });
                 return this;
+            },
+            send:socket.send,
+            emit:function(o,v){
+              return socket.send(o+","+(typeof v == 'object'?JSON.stringify(v):v))
             }
         }
     },
+
 
     /*
         let chain=O.Chain([f(),g(),h()]);
