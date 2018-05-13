@@ -1,5 +1,4 @@
-
-
+<img src="https://ilgilenio.github.io/Otag/img/otag.svg" alt="Otağ Logo" height="80">
   
 ### Otağ Çatı Çalışması
 
@@ -38,5 +37,5 @@ MIT Lisansı ile korunmaktadır.
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
 [Tasarı gözlem yazıtımız](https://tree.taiga.io/project/ilgilenio-otag/kanban)'a gözatın
 <a href="https://github.com/ilgilenio/Otag/wiki">
-    <img src="https://ilgilenio.github.io/Otag/img/alt.png" alt="OtağJS">
+    <img src="https://ilgilenio.github.io/Otag/img/otag.tengri.png" alt="Otağ, Tengri Dağı">
   </a>
