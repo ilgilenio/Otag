@@ -280,46 +280,26 @@ var O,Otag=O={
     Sock:function(opts){
         opts=O.combine({
             url:'/',
-            open: function(){}
         },typeof opts =='string'?{url:opts}:opts);
         
-        var socket;
+        var yuva;
         var conn = function(){
-          socket = new WebSocket(opts.url.startsWith('ws://') ? opts.url : 'wss://'+opts.url);
+          yuva = new WebSocket(opts.url.startsWith('ws://') ? opts.url : 'wss://'+opts.url);
         };
         conn();
         let olay;
 
-        // Connection opened
-        socket.addEventListener('open', opts.open);
-
-        // Listen for messages
-        socket.addEventListener('message', function (event) {
+        yuva.addEventListener('message', function (event) {
             let veri = event.data.split(",")
             olay = veri[0];
             veri.shift();
-            socket.dispatchEvent(new MessageEvent(olay, {data: veri.length==1?veri[0]:veri}));
+            yuva.dispatchEvent(new MessageEvent(olay, {data: veri.length==1?veri[0]:veri}));
         });
 
-        socket.addEventListener('close', function(ev){
+        yuva.addEventListener('close', function(ev){
           conn();
         })
-        return {
-            connected:socket.readyState,
-            on:function(trig,cb){
-                if(typeof trig=='string'){
-                    trig={[trig]:cb};
-                }
-                return Object.keys(trig).forEach(function(e){
-                    socket.addEventListener(e,trig[e]);
-                });
-                return this;
-            },
-            send:socket.send,
-            emit:function(o,v){
-              return socket.send(o+","+(typeof v == 'object'?JSON.stringify(v):v))
-            }
-        }
+        return yuva;
     },
 
 
@@ -1322,6 +1302,21 @@ var O,Otag=O={
         value:function(){
             return this.src;
         }
+    },
+    WebSocket: {
+      on: function(trig,cb){
+          let bu = this;
+          if(typeof trig=='string'){
+              trig={[trig]:cb};
+          }
+          return Object.keys(trig).forEach(function(e){
+              bu.addEventListener(e,trig[e]);
+          });
+          return this;
+      },
+      emit: function(o,v){
+        return this.send(o+","+(typeof v == 'object'?JSON.stringify(v):v))
+      }
     }
 }
 
