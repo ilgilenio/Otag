@@ -293,7 +293,7 @@ var O,Otag=O={
             let veri = event.data.split(",")
             olay = veri[0];
             veri.shift();
-            yuva.dispatchEvent(new MessageEvent(olay, {data: veri.length==1?veri[0]:veri}));
+            yuva.dispatchEvent(new MessageEvent(olay, {data: veri.join(",")}));
         });
 
         yuva.addEventListener('close', function(ev){
