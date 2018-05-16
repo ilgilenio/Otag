@@ -418,39 +418,57 @@ var O,Otag=O={
         });
     })
     ,_selector:function(s){
-        /*
-        bu taslak düşünülecek
-        var res={
-            tag:'div',
-            class: /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
+        var d= {
+            class:/\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
             attr:/\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
-            //new RegExp('#'+latin),
             id:/\#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
-            module:/[\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-            args:/\:(\w+)/g
+            ui:/[\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
+            args:/\:(.+)/g,
+            el:/^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
+        };
+        d=Object.keys(d).reduce(function(o,i){
+            var rm=[],e,x=-1,r=d[i];
+            while((e=r.exec(s))&&r.lastIndex!=x){
+                rm.push(e[0]);
+                x=r.lastIndex;
+                if(o[i] instanceof Object&&!(o[i] instanceof Array)){
+                    o[i][e[1]]=e[2];
+                }else{
+                    if(o[i]==null){
+                        o[i]=e[1]||e[0];
+                        s=s.replace(e[0],'');
+                        break;
+                    }
+                    o[i].push(e[1]);
+                }
+            }
+            rm.forEach(function(i){
+                s=s.replace(i,'');
+            });
+            return o;
+        },{class:[],attr:{},id:null,ui:null,args:[],el:null});
+
+        if(s.length){
+            d.class=d.class.concat(s.split(' '))
         }
-        Object.keys(res).forEach(function(i,j){
-            let r=res[i];
-        });*/
+        return d;
+    }
+    ,_selector2:function(s){
 
-        //tag,class,attr,id,module,argument
-
-        var d= [
-            'div',
+        var d= ['div'].concat([
             /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
             /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
-            //new RegExp('#'+latin),
             /\#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
             /[\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-            /\:(\w+)/g
+            /\:(.+)/g
         ].map(function(r,j){
             if(typeof r =='string'){return r;}
-            var l=j==2?{}:[],rm=[],e,i=-1;
+            var l=j==1?{}:[],rm=[],e,i=-1;
 
             while((e=r.exec(s))&&r.lastIndex!=i){
                 rm.push(e[0]);
                 i=r.lastIndex;
-                if(j==2){
+                if(j==1){
                     l[e[1]]=e[2];
                 }else{
                     l.push(e[1]);
@@ -460,16 +478,13 @@ var O,Otag=O={
                 s=s.replace(i,'');
             });
             return l;
-        });
-        if(!isFinite(s)&&s.length){
-            if(['[','#','.'].indexOf(s[0])==-1){
-                let i=Math.min.apply(Math,['[','#','.'].map(function(i){i=s.indexOf(i);return i==-1?Infinity:i;}))
-                d[0]=s.substr(0,i).trim();
-                s=s.substring(i);
-                if(!(/^[a-zşüöçığ]+/g.test(d[0]))||(d[0].indexOf(' ')>-1)){
-                    d[1].push(d[0]);d[0]='div';
-                }
-            }
+        }));
+        let e;
+        if(e=/^[a-zşüöçığ][a-zşüöçığ0-9]+$/g.exec(s)){
+            s=s.replace(d[0]=e[0],'');
+        }
+        if(s.length){
+            d[1]=d[1].concat(s.split(' '))
         }
         return d;
     },
@@ -1155,10 +1170,10 @@ var O,Otag=O={
         */
         get:function(){
             let s=this+'',d=O._selector(s);
-            if(d[4].length||d[5].length){throw new Error('Module and argument selector is not available');}
+            if(d.args.length||d.ui){throw new Error('Module and argument selector is not available');}
             var th=O.toArray(document.querySelectorAll(this+''));
             
-            if(d[3].length){
+            if(d.id){
                 th=th[0];
             }
             return th;
@@ -1170,26 +1185,25 @@ var O,Otag=O={
         */
         init:function(){
             let s=this+'',d=O._selector(s);
-            if(d[4].length){
-                let ui=d[4][0];
-                if(!O.UI[ui]){console.log(ui,'is not defined')};
-                d[0]=O.UI[ui].apply(ui,d[5].length?d[5].concat(O.toArray(arguments)):arguments);
+            if(d.ui){
+                if(!O.UI[d.ui]){console.log(ui,'is not defined')};
+                d.el=O.UI[d.ui].apply(d.ui,d.args.concat(O.toArray(arguments)));
             }else{
-                d[0]=document.createElement(d[0]);
+                d.el=document.createElement(d.el||'div');
             }
             if(isFinite(s)&&s!=''&&O.i18n){
-                d[0].set(s,1).Class('label');
+                d.el.set(s,1).Class('label');
             }
             //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
-            d[0].Class(d[1]).attr(d[2]);
-            if(d[3].length){
-                d[0].id=d[3][0];
+            d.el.Class(d.class).attr(d.attr);
+            if(d.id){
+                d.el.id=d.id;
             }
-            if(d[0].tagName=='INPUT'){
-                d[0].addEventListener('keyup',function(e){if(e.keyCode==13&&this.enter){this.enter(this.value)}})
+            if(d.el.tagName=='INPUT'){
+                d.el.addEventListener('keyup',function(e){if(e.keyCode==13&&this.enter){this.enter(this.value)}})
             }
-            if(!d[0].View){d[0].View={};}
-            return d[0];
+            if(!d.el.View){d.el.View={};}
+            return d.el;
         },
         /* 
             '#ResimKutusu'.extends('Bediz')
