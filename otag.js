@@ -282,30 +282,26 @@ var O,Otag=O={
             url:'/',
         },typeof opts =='string'?{url:opts}:opts);
         
-        const socket = new WebSocket('wss://'+opts.url);
+        var yuva;
+        var conn = function(){
+          yuva = new WebSocket(opts.url.startsWith('ws://') ? opts.url : 'wss://'+opts.url);
+        };
+        conn();
+        let olay;
 
-        // Connection opened
-        socket.addEventListener('open', function (event) {
-            socket.send('Hello Server!');
+        yuva.addEventListener('message', function (event) {
+            let veri = event.data.split(",")
+            olay = veri[0];
+            veri.shift();
+            yuva.dispatchEvent(new MessageEvent(olay, {data: veri.join(",")}));
         });
 
-        // Listen for messages
-        socket.addEventListener('message', function (event) {
-            console.log('Message from server ', event.data);
-        });
-        return {
-            connected:false,
-            on:function(trig,cb){
-                if(typeof trig=='string'){
-                    trig={[trig]:cb};
-                }
-                return Object.keys(trig).forEach(function(e){
-                    sock.addEventListener(e,trig[e]);
-                });
-                return this;
-            }
-        }
+        yuva.addEventListener('close', function(ev){
+          conn();
+        })
+        return yuva;
     },
+
 
     /*
         let chain=O.Chain([f(),g(),h()]);
@@ -1320,6 +1316,21 @@ var O,Otag=O={
         value:function(){
             return this.src;
         }
+    },
+    WebSocket: {
+      on: function(trig,cb){
+          let bu = this;
+          if(typeof trig=='string'){
+              trig={[trig]:cb};
+          }
+          return Object.keys(trig).forEach(function(e){
+              bu.addEventListener(e,trig[e]);
+          });
+          return this;
+      },
+      emit: function(o,v){
+        return this.send(o+","+(typeof v == 'object'?JSON.stringify(v):v))
+      }
     }
 }
 
