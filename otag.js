@@ -137,7 +137,7 @@ var O,Otag=O={
                          dgsk=new RegExp(n.replace(/^([\/\#\@])/, '^').replace(/([\/\#\@])$/, '\/*$')).exec(r1);
                          if(dgsk){dgsk.shift();r=bu.routes[n];}
                          else r=bu.routes.none;
-                       }
+                       }else r=bu.routes.none;
                      })
                    }else r=this.routes.none;
                 }
