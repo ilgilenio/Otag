@@ -15,7 +15,7 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 * Ön yüz(Frontend) DOM ögelerinden oluştuğu için Otağ Bileşenlerini DOM ekseninde yazmak
 * İstemci cihazını etkin kullanarak sunucu yükünü azaltırken kod kalitesi ve verimliliğe dikkat ederek aygıt pil ömrünü korumak
 * Zengin bileşenleri tek biçimlilik ile yalınlaştırmak
-* Bileşen(UI) ve Biçimler(Model) dahil Tamga yazımını kullanmak
+* Bileşen(UI) ve Biçimler(Model) dahil **[Tamga](https://github.com/ilgilenio/Tamga)** yazımını kullanmak
 * Yalınlık ve başarımı bir arada sağlamak
 * En gerekli ve temel özellikleri barındırmak
 
