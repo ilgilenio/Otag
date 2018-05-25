@@ -186,8 +186,23 @@
                 if(!(title='title'.get()).length){
                     document.head.append(title=['title'.init()])
                 }
+<<<<<<< HEAD
                 if(title[0].innerHTML.indexOf('page₺')==-1){
                     title[0].set('page₺')
+=======
+                let r,r1=h.shift(),dgsk;
+                if(!(r=this.routes[r1])){
+                   if(opts.regkeys){
+                     let bu=this;
+                     Object.keys(this.routes).reduce(function(t,n){
+                       if(n.match(/^[\/\#\@](.+)[\/\#\@]$/)){
+                         dgsk=new RegExp(n.replace(/^([\/\#\@])/, '^').replace(/([\/\#\@])$/, '\/*$')).exec(r1);
+                         if(dgsk){dgsk.shift();r=bu.routes[n];}
+                         else r=bu.routes.none;
+                       }else r=bu.routes.none;
+                     })
+                   }else r=this.routes.none;
+>>>>>>> ae52d7b67d0712ef6b084eef2a211bfa8cd0fbfd
                 }
                 
                 this.title=title[0];
