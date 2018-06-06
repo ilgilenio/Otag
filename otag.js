@@ -11,6 +11,37 @@
     */
     "use strict"
     var O,Otag=O={
+        Disklet:function(url,data,diskPrefix,fields,expire){
+            return new Proxy(O.Disk,{
+                get:function(o,k){
+                    return new Promise(function(res,rej){
+                        let key=(diskPrefix||'')+k;
+                        if(o[key]){
+                            res(o[key]);
+                        }else{
+                            if(data.id){
+                                data.id=k;
+                            }
+                            O.req(url.vars({id:k}),data).then(function(r){
+                                res(o[key]=fields.of(r));
+                                if(expire){
+                                    O.Disk.expire(key,expire);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        },
+        require:function(js,path){
+            return new Promise(function(res,rej){
+                O.ready.then(b=>{
+                    document.head.append(('script[src="'+(path||'')+js+'.js"]').prop({onload:function(){
+                        res(js);
+                    }}));
+                });
+            })
+        },
         /*
             Geçmiş/Yönlendirme/Sayfalama Yöneticisi
             Belirlediğiniz yollara göre işlev çağırabilirsiniz, yönlendirme yapabilirsiniz
@@ -509,18 +540,18 @@
                 }
                 return e;
             },this||{});
-        }
+        },
         /*
             O.ready.then(body=> )
         
             Belge yüklenince çözümlenecek bir Söz döndürür,
         */
-        ,ready:new Promise(function(res,rej){
+        ready:new Promise(function(res,rej){
             document.addEventListener('DOMContentLoaded',function(){
                 res(document.body);
             });
-        })
-        ,_selector:function(s){
+        }),
+        _selector:function(s){
             var d= {
                 class:/\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
                 attr:/\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
@@ -590,7 +621,7 @@
                 d[1]=d[1].concat(s.split(' '))
             }
             return d;
-        }
+        },
         /*
             ₺M:Model ve ₺Bileşen tanımlamak içindir.
         */
@@ -604,13 +635,13 @@
         },
         _conf:{
             backend:'/',
-        }
+        },
         /*
             O.Time.now       Şimdi (UNIX zamanı) sn cinsinden verir.
             O.Time.yesterday Dünün ilk sn verir.
 
         */
-        ,Time:new Proxy({
+        Time:new Proxy({
             yesterday:864e5,
             today:0,now:0,
             tomorrow:-864e5
@@ -620,7 +651,7 @@
                 t.setHours(0);
                 t.setMinutes(0);
                 t.setSeconds(0);
-            };return Math.floor(t.getTime()/1000)}})
+            };return Math.floor(t.getTime()/1000)}}),
         /*
             O.Disk.açar = 'değer'
             O.Disk.açar             // 'değer'
@@ -628,7 +659,7 @@
 
             Yerel Yığınağa bilgi yazmak/okumak/silmek için kullanılır.
         */
-        ,Disk:typeof Storage!="undefined"?new Proxy({available:true,expire:function(key,time){
+        Disk:typeof Storage!="undefined"?new Proxy({available:true,expire:function(key,time){
                 O.Disk[key+':expire']=O.Time.now+Number(time);
             },rem:function(k){
                 if(typeof k=='string'){k=[k];}
@@ -678,7 +709,7 @@
                     return o;
                 },o);
             },o);
-        }
+        },
         /*
             O.req('veritabanı',{kimlik:''}).then(f(cevap))
             ep:     uçnokta,    YAZI
@@ -688,7 +719,7 @@
             Söz döndürür.
 
         */
-        ,req:function(ep,data,upload){
+        req:function(ep,data,upload){
             var XHR=new XMLHttpRequest();
             
             //backend+endpoint
@@ -725,11 +756,11 @@
                 s=data?s(data):'';
                 XHR.send(s);
             });     
-        }
+        },
         /*
             Uluslararasılaştırma(U18A) Betliği
         */
-        ,i18n:function(opts){
+        i18n:function(opts){
             opts=O.combine({
                 langs:{tr:'Türkçe'},
                 map:null,
@@ -839,7 +870,7 @@
                 //this.View[this.dil].selected=false;
                 
             }}).prop({dil:def});
-        }
+        },
         
         /*
             Nesne={a:1,b:2,_:'b,a'};
@@ -848,10 +879,10 @@
 
             Nesneleri Diziye Dönüştürür
         */
-        ,toArray:function(obj){
+        toArray:function(obj){
             return (obj._?((typeof obj._ =='string')?obj._.split(','):obj._):Object.keys(obj)).map(function(i){return obj[i];});
-        }
-        ,proto:{
+        },
+        proto:{
         Element:{
             /*
                 A=''.has({a:''.has({b:''})})
@@ -1159,38 +1190,26 @@
                 return s;
             },
             setSafe:function(t,phr){
-                if(typeof t =='string'){
-                    t=t.replaceAll(
-                        [/&/g,
-                        /</g,
-                        />/g,
-                        /"/g,
-                        /'/g],
-                        ["&amp;",
-                        "&lt;",
-                        "&gt;",
-                        "&quot;",
-                        "&#039;"]
-                    )
+                let rep=function(str){
+                    if(typeof str =='string'){
+                        str=str.replaceAll(
+                            [/&/g,
+                            /</g,
+                            />/g,
+                            /"/g,
+                            /'/g],
+                            ["&amp;",
+                            "&lt;",
+                            "&gt;",
+                            "&quot;",
+                            "&#039;"]
+                        )
+                    }
+                    return str;
                 }
-                if(typeof phr =='string'){
-                    phr=phr.replaceAll(
-                        [/&/g,
-                        /</g,
-                        />/g,
-                        /"/g,
-                        /'/g],
-                        ["&amp;",
-                        "&lt;",
-                        "&gt;",
-                        "&quot;",
-                        "&#039;"]
-                    )
-                }
-                return this.set(t,phr);
+                return this.set(rep(t),rep(phr));
             },
             /*
-
                 Öge='Öge'.set('Esenlikler ad₺!',{ad:'Yertinç'});
                 <div class="Öge">>Esenlikler Yertinç!</div>
 
@@ -1198,7 +1217,6 @@
                 Öge.val                 // {ad:'Otağ'});
                 <div class="Öge">Esenlikler Otağ!</div>
         
-
                 Öge'nin içine yazı yazar
             */
             set:function(t,phr){
@@ -1217,36 +1235,25 @@
                             this.innerHTML="";
                             this.append(this.main.varsX(this.data=t));
                         }else{
-                            this.innerHTML=this.main.vars(this.data=t);
+                            this.innerHTML=this.main.vars(this.data=t).replace(/\n/gm,'<br>');
                         }
                     }else{
-                        this.innerHTML=t;
+                        this.innerHTML=String(t).replace(/\n/gm,'<br>');
                     }
                 }else if(t){
                     if(isFinite(t)){
                         this.Lang(t,phr==1?null:phr);
                     }else{
                         this.main=t;
-                        /*let e,r,i;
-                        if((r=/(\:[0-9A-Za-zşŞüÜöÖçÇİığĞ]+)+/g).test(t)){
-                            r=new RegExp(r);
-                            let j=0;
-                            while((e=r.exec(t))&&r.lastIndex!=i){
-                                i=r.lastIndex;
-                                if(this.V(e[0].substring(1))){
-                                    t= t.replaceAll(e[0],j+'__₺');
-                                    phr[(j++)+'__']=this.V(e[0].substring(1));
-                                }
-                            }
-                            if(j){phr._=1};
-                        }*/
                         if(phr._){
                             this.innerHTML="";
                             this.append(this.main.varsX(this.data=phr));
                         }else{
-                            this.innerHTML=this.main.vars(this.data=phr);
+                            this.innerHTML=this.main.vars(this.data=phr).replace(/\n/gm,'<br>');
                         }
                     }
+                }else{
+                    this.innerHTML='';
                 }
                 return this.Class('def',1);
             },
@@ -1389,15 +1396,21 @@
             },
             /* 
                 Öge='Öge'.has({a:'a'.prop('value',1),b:'b'.prop('value',2)});
-                'a,b'.of(Öge)       // [1,2]
+                'a,b'.val(Öge)       // [1,2]
                 'a,b'.from(Öge.val) // [1,2] aslında bu demektir.
 
                 Öge'nin değerinden istenilen alanları sırayla getirir. Dizi oluşturur
             */
-            of:function(obj){
-                let v=obj.val;
-                let r=this.split(',').map(function(i){return v[i]});
+            val:function(obj){
+                let r=this.split(',').map(function(i){return this[i]},obj.val);
                 return r.length==1?r[0]:r;
+            },
+            /* 
+               nesneyi istenilen alanlara göre keser
+               'ad,soyad'.of({ad:'',soyad:'',bediz:''}) => {ad:'',soyad:''}
+            */
+            of:function(obj){
+                return this=='*'?obj:this.split(',').reduce(function(o,i){o[i]=obj[i]||null;return o},{});
             },
             /* 
                 'Esenlikler yer₺!'.vars({yer:'Yertinç'}) //Esenlikler Yertinç!
@@ -1473,8 +1486,10 @@
         },
         Image:{
             set:function(s){
-                this.src=s;
-                return this;
+                return this.Class('loading').prop({
+                    onload:function(){this.Class('loading',1)},
+                    onerror:function(){this.Class('loading',1).Class('error')}
+                    ,src:s});
             },
             value:function(){
                 return this.src;
@@ -1623,13 +1638,35 @@
             }
             else if(this.value||this.hasOwnProperty('value')){return this.value;}
             else if(this.View){
-                let d={},n=this;
-                Object.keys(this.View).forEach(function(i){
-                    if(i[0]!='_'&&!this[i].isSameNode(n)){d[i]=this[i].val;}
-                },this.View);
-                return d;
+                let d={},n=this,v;
+                if(Object.keys(this.View).some(function(i){
+                    if(i[0]!='_'&&!this.View[i].isSameNode(n)){
+                        if(this._validator&&(v=this._validator[i])){
+                            if(!(typeof v=='function'?v(this.View[i].val):v.test(this.View[i].val))){
+                                if(this._invalid){
+                                    this._invalid();
+                                }
+                                return true;
+                            }
+                        }
+                        d[i]=this.View[i].val;
+                    }
+                    return false;
+                },this)){
+                    return null;
+                }else{
+                    return d;
+                }
             }
             else{return this.data||null;}
         },
-        set:function(o){if(this.View){this.setView(o)}else{this.set(o);}}}
+        set:function(o){
+            if(o instanceof Promise){
+                let s=this;
+                o.then(function(o){
+                    s.val=o;
+                })
+            }
+            if(this.View){this.setView(o)}else{this.set(o);}}
+        }
     });
