@@ -642,7 +642,7 @@
             },this);
         },
         _conf:{
-            backend:'/',
+            backend:'/ep₺',
         },
         /*
             O.Time.now       Şimdi (UNIX zamanı) sn cinsinden verir.
@@ -1329,7 +1329,16 @@
 
                 Eğer veri kaynağı uç noktaysa O.Disklet ile birlikte kullanabilirsiniz.
             */
-            connect:function(on,source){
+            connect:function(opts,source,index,nav){
+                let args=O.toArray(opts);
+                opts=O.combine({
+                    on:'oid',
+                    source:[],
+                    index:0,
+                    nav:false
+                },typeof opts=='string'?{
+                    on:args.
+                });
                 let f;
                 if(source instanceof Element){
                     f=function(ch){
@@ -1347,7 +1356,8 @@
                         }
                     }
                 }
-                return this.resp(on,f.bind(this));
+                this.resp(on,f.bind(this));
+                return this;
             },
             /*
                 Ögenin Verisini isterken doğrular
@@ -1468,6 +1478,28 @@
             */
             of:function(obj){
                 return this=='*'?obj:this.split(',').reduce(function(o,i){o[i]=obj[i]||null;return o},{});
+            },
+            /*
+                Diziden nesne yapar
+                'ad,soyad,bediz,özellik1'.obj(['koraltan','temren','temren.jpg']) =>
+                {ad:'koraltan',soyad:'temren',bediz:'temren.jpg'}
+                def girdisine, dizide o indis yoksa belirecek öntanımlı değer girebilirsiniz
+                bu öntanımlı değer hepsi için ortak ya da indise özgü olabilir.
+            */
+            obj:function(arr,def){
+                return this.split(',').reduce(
+                    def instanceof Array
+                    //indise özgü öntanımlı
+                    ?function(n,i,j){
+                        n[i]=arr[j]||def[j];
+                        return n;
+                    }
+                    //ortak öntanımlı
+                    :function(n,i,j){
+                        n[i]=arr[j]||def;
+                        return n;
+                    }
+                ,{});
             },
             /* 
                 'Esenlikler yer₺!'.vars({yer:'Yertinç'}) //Esenlikler Yertinç!
