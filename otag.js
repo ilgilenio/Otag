@@ -642,7 +642,7 @@
             },this);
         },
         _conf:{
-            backend:'/ep₺',
+            req:{ep:'/ep₺'},
         },
         /*
             O.Time.now       Şimdi (UNIX zamanı) sn cinsinden verir.
@@ -731,7 +731,7 @@
             var XHR=new XMLHttpRequest();
             
             //backend+endpoint
-            XHR.open(data?'POST':"GET",ep.indexOf('/')>-1?ep:(O._conf.backend+ep),true);
+            XHR.open(data?'POST':"GET",ep.indexOf('/')>-1?ep:(O._conf.req.ep.vars({ep:ep})),true);
             XHR.setRequestHeader("Content-type","application/x-www-form-urlencoded");
             var s=function(obj, pr) {
                 var str = [];
@@ -1328,24 +1328,19 @@
                 Öge.otag_id = 1 // Öge 1 deki verilerle güncellenir..
 
                 Eğer veri kaynağı uç noktaysa O.Disklet ile birlikte kullanabilirsiniz.
+
+                .connect()
             */
-            connect:function(opts,source,index,nav){
-                let args=O.toArray(opts);
-                opts=O.combine({
-                    on:'oid',
-                    source:[],
-                    index:0,
-                    nav:false
-                },typeof opts=='string'?{
-                    on:args.
-                });
-                let f;
-                if(source instanceof Element){
-                    f=function(ch){
+            connect:function(source,on,nav,range){
+                if(!source){
+                    throw Error(".connect requires a data source. https://otagjs.org/#/belge/.connect");
+                }
+                on=on||'oid';
+                let f=(source instanceof Element
+                    ?function(ch){
                         this.val=source.val;
                     }    
-                }else{
-                    f=function(ch){
+                    :function(ch){
                         let d = source instanceof Function?source(ch):source[ch];
                         f = (function(d){ this.val=d;}).bind(this);
                         if(d instanceof Promise){
@@ -1354,9 +1349,45 @@
                         }else{
                             f(d);
                         }
-                    }
+                    }).bind(this);
+                
+                if(nav){
+                    this.prop({
+                        dataNav:function(to){
+                            if(this.source[to]){
+                                let p=this.source[to]
+                                ,   f=(function(p){
+                                        this[on]=p;
+
+                                    }).bind(this);
+                                if(typeof p=='function'){
+                                    p=p();
+                                    p instanceof Promise?p.then(f):f(p);
+                                }else{
+                                    f(p);
+                                }
+                            }else{
+                                let r = range||[0,this.source.length-1]
+                                ,   i = this[on];
+                                i=to=='prev'?i-1:i+1;
+                                if(i<r[0]){
+                                    i=r[1];
+                                }else if(i>r[1]){
+                                    i=r[0];
+                                }
+                                this[on]=i;
+                            }
+                            return this;
+                        },
+                        next:function(){
+                            return this.dataNav('next');
+                        },
+                        prev:function(){
+                            return this.dataNav('prev');
+                        }
+                    })
                 }
-                this.resp(on,f.bind(this));
+                this.prop('source',source).resp(on,f);
                 return this;
             },
             /*
