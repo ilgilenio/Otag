@@ -12,26 +12,83 @@
     "use strict"
     var O,Otag=O={
         Disklet:function(url,data,diskPrefix,fields,expire){
-            return new Proxy(O.Disk,{
-                get:function(o,k){
+            if(url instanceof Object){
+                expire=fields||300;
+                fields=diskPrefix;
+                diskPrefix=data;
+                data=null;
+                let Src={_ready:-1,sum:function(keys){
+                    let s=this;
+                    return Object.keys(s).reduce(function(n,i){
+                        if(i!='sum'&&i!='_ready'){
+                            n[i]=keys.of(s[i]);
+                        }
+                        return n;
+                    },{});
+                }};
+                let ready=function(){
                     return new Promise(function(res,rej){
-                        let key=(diskPrefix||'')+k;
-                        if(o[key]){
-                            res(o[key]);
-                        }else{
-                            if(data.id){
-                                data.id=k;
-                            }
-                            O.req(url.vars({id:k}),data).then(function(r){
-                                res(o[key]=fields.of(r));
-                                if(expire){
-                                    O.Disk.expire(key,expire);
+                        if(O.Disk[diskPrefix]){
+                            Src._ready=1;
+                            O.combine(Src,O.Disk[diskPrefix]);
+                            Src.sum=Src.sum.bind(Src);
+                            res(Src);
+                        }else if(Src._ready==-1){
+                            O.req(url.static).then(function(data){
+                                if(fields!='*'){
+                                    data=Object.keys(data).reduce(function(o,i){
+                                        o[i]=fields.from(data[i]);
+                                    });
                                 }
-                            });
+                                Src._ready=1;
+                                O.combine(Src,O.Disk[diskPrefix]);
+                                Src.sum=Src.sum.bind(Src)
+                                O.Disk.expire(diskPrefix,expire);
+                                res(Src);
+                            })
                         }
                     });
                 }
-            });
+                if(url.when=='init'){
+                    ready();
+                }
+                return new Proxy(Src,{
+                    get:function(o,k){
+                        return new Promise(function(res,rej){
+                            if(o._ready==1){
+                                res(o[k]);
+                            }else{
+                                ready().then(function(Src){
+                                    o=Src;
+                                    res(o[k]);
+                                })
+                            }
+                        });
+                        return o[k];
+                    }
+                });
+            }else{
+                return new Proxy(O.Disk,{
+                    get:function(o,k){
+                        return new Promise(function(res,rej){
+                            let key=(diskPrefix||'')+k;
+                            if(o[key]){
+                                res(o[key]);
+                            }else{
+                                if(data.id){
+                                    data.id=k;
+                                }
+                                O.req(url.vars({id:k}),data).then(function(r){
+                                    res(o[key]=fields.of(r));
+                                    if(expire){
+                                        O.Disk.expire(key,expire);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
         },
         require:function(js,path){
             return new Promise(function(res,rej){
@@ -143,6 +200,10 @@
                                 handle(r);
                             }
                         }
+                        if(r.once){
+                            r.once.apply(r,args);
+                            delete r.once;
+                        }else
                         if(r.wake){r.wake.apply(r,args);}
                     }
                     window.history[(push?'push':'replace')+'State'](page,null,'#/'+page)
@@ -194,6 +255,10 @@
                                 handle(r);
                             }
                         }
+                        if(r.once){
+                            r.once.apply(r,h);
+                            delete r.once;
+                        }else
                         if(r.wake){r.wake.apply(r,h);}
                     }
                     window.history[(push?'push':'replace')+'State'](hash,null,'#/'+hash)
@@ -259,6 +324,11 @@
                     }
                     let s=this;
                     O.Page.routes[route]=function(r){
+                        if(s.once){
+                            s.once();
+                            delete s.once;
+                            return 0;
+                        }
                         s.wake();
                     }
                 }).prop('route',r);
@@ -363,6 +433,11 @@
                     }
                     let s=this;
                     O.Page.routes[route]=function(r){
+                        if(s.once){
+                            s.once();
+                            delete s.once;
+                            return 0;
+                        }
                         s.wake();
                     }
                 }).prop('route',r);
@@ -372,11 +447,22 @@
                     if(typeof r=='string'){
                         this.route(r);
                     }else if(r instanceof Object){
-                        r.bet.wake.call(r.bet,r.hash);
+                        if(r.bet.once){
+                            r.bet.once.call(r.bet,r.hash);
+                            delete r.bet.once;
+                            return 0;
+                        }else{
+                            r.bet.wake.call(r.bet,r.hash);
+                        }
                         window.history[(push?'push':'replace')+'State'](r.hash,null,r.fp)
                     }
                 } if(r instanceof Element){
                         this.now=r;
+                        if(r.once){
+                            r.once.apply(r,args);
+                            delete r.once;
+                            return 0;
+                        }
                         if(r.wake){r.wake.apply(r,args);}else{opts.handler(r,args);}
                     }
             }).bind(this)
@@ -1358,7 +1444,6 @@
                                 let p=this.source[to]
                                 ,   f=(function(p){
                                         this[on]=p;
-
                                     }).bind(this);
                                 if(typeof p=='function'){
                                     p=p();
@@ -1416,13 +1501,16 @@
 
                 Belgedeki Ögeleri getirir
             */
-            get:function(){
+            get:function(index){
                 let s=this+'',d=O._selector(s);
                 if(d.args.length||d.ui){throw new Error('Module and argument selector is not available');}
                 var th=O.toArray(document.querySelectorAll(this+''));
                 
                 if(d.id){
-                    th=th[0];
+                    index=0;
+                }
+                if(index!=null){
+                    th=th[index];
                 }
                 return th;
             },
