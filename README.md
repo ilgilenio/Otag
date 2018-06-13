@@ -22,16 +22,16 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 #### Sürüm
 Sürümleri ve etkinlikleri [takip edin 📆](https://ilgilenio.github.io/Otag/cizelge/)
 
-1.1 (A)
+1.3
 
-[otag.js](https://ilgilenio.github.io/Otag/otag.js) (Geliştirme,son)
+[otag.js](https://ilgilenio.github.io/Otag/otag.1.3.js) (Geliştirme, Bol açıklamalı)
 
-[otag.min.js](https://ilgilenio.github.io/Otag/otag.min.js) (**15.2kb**, _5.8kb GZIP_)
+[otag.min.js](https://ilgilenio.github.io/Otag/otag.1.3.min.js) (**19.54KB**, _6.6kb GZIP_)
 
 
 #### Belgelendirme
 [Github Wiki](https://github.com/ilgilenio/Otag/wiki)
-
+[GitLab Wiki](https://gitlab.com/ilgilenio/Otag/wikis) (Buraya taşınması sürüyor)
 [OtagJS ORG](https://otagjs.org/#/belge)
 
 #### Lisans
