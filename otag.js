@@ -5,91 +5,13 @@
   |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
           /|
 *         \|    2016-2018 ilgilenio® 
-*               Otag Çatı Çalışması 1.2.9 kararsız sürüm
+*               Otag Çatı Çalışması 1.3
 *               https://gitlab.com/ilgilenio/Otag/wikis
 *               MIT ile dagitilmaktadir
 */
 "use strict"
 var O,Otag=O={
-    Disklet:function(url,data,diskPrefix,fields,expire){
-        if(url instanceof Object){
-            expire=fields||300;
-            fields=diskPrefix;
-            diskPrefix=data;
-            data=null;
-            let Src={_ready:-1,sum:function(keys){
-                let s=this;
-                return Object.keys(s).reduce(function(n,i){
-                    if(i!='sum'&&i!='_ready'){
-                        n[i]=keys.of(s[i]);
-                    }
-                    return n;
-                },{});
-            }};
-            let ready=function(){
-                return new Promise(function(res,rej){
-                    if(O.Disk[diskPrefix]){
-                        Src._ready=1;
-                        O.combine(Src,O.Disk[diskPrefix]);
-                        Src.sum=Src.sum.bind(Src);
-                        res(Src);
-                    }else if(Src._ready==-1){
-                        O.req(url.static).then(function(data){
-                            if(fields!='*'){
-                                data=Object.keys(data).reduce(function(o,i){
-                                    o[i]=fields.from(data[i]);
-                                });
-                            }
-                            Src._ready=1;
-                            O.combine(Src,O.Disk[diskPrefix]);
-                            Src.sum=Src.sum.bind(Src)
-                            O.Disk.expire(diskPrefix,expire);
-                            res(Src);
-                        })
-                    }
-                });
-            }
-            if(url.when=='init'){
-                ready();
-            }
-            return new Proxy(Src,{
-                get:function(o,k){
-                    return new Promise(function(res,rej){
-                        if(o._ready==1){
-                            res(o[k]);
-                        }else{
-                            ready().then(function(Src){
-                                o=Src;
-                                res(o[k]);
-                            })
-                        }
-                    });
-                    return o[k];
-                }
-            });
-        }else{
-            return new Proxy(O.Disk,{
-                get:function(o,k){
-                    return new Promise(function(res,rej){
-                        let key=(diskPrefix||'')+k;
-                        if(o[key]){
-                            res(o[key]);
-                        }else{
-                            if(data.id){
-                                data.id=k;
-                            }
-                            O.req(url.vars({id:k}),data).then(function(r){
-                                res(o[key]=fields.of(r));
-                                if(expire){
-                                    O.Disk.expire(key,expire);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
-    },
+    
     require:function(js,path){
         return new Promise(function(res,rej){
             O.ready.then(b=>{
@@ -106,6 +28,7 @@ var O,Otag=O={
         
         Örnek kullanım
         https://ilgilenio.github.io/Otag/ornekler/Atasozleri
+        // ! Kararsız, değişiklikler oluşabilir.
     */
     Page:function(opts){
         opts=O.combine({
@@ -160,17 +83,6 @@ var O,Otag=O={
                     return o[k]?o[k]:null;
                 }
             }),
-            routeComplete:function(bet,args){
-                /*let bet1;
-                if(bet1=this.routes[bet]){
-                    if(bet1.wake){bet1.wake.apply(bet1,args);}
-                    this.now=bet1;
-                }else{
-                    if(opts.fallback){
-                        opts.fallback()
-                    }
-                }*/
-            },
             routeSilent:function(page,args,push){
                 if(page==''&&this.routes.index){
                     return this.routeSilent('index',args);
@@ -301,238 +213,97 @@ var O,Otag=O={
         O.ready.then(init.bind(O.Page));
         return O.Page;
     },
-    Page2:function(opts){
-        opts=O.combine({
-            routes:{},
-            none:"Bulunamadı".prop({
-               name: 'Bulunamadı'
-            }).layout([
-               ["center", [
-                'h1'.set('Bet Bulunamadı'),
-                'p'.set("Aradığınız bet bulunamadı")
-               ]]
-            ]),
-            handler:function(Oge){
-                document.body.html(Oge);
-            }
-        },opts||{});
-        opts.routes.none=opts.none;
-        Element.prototype.router=function(r){
-            return this.resp('route',function(route){
-                if(this.route){
-                    delete  O.Page.routes[this.route];
-                }
-                let s=this;
-                O.Page.routes[route]=function(r){
-                    if(s.once){
-                        s.once();
-                        delete s.once;
-                        return 0;
-                    }
-                    s.wake();
-                }
-            }).prop('route',r);
-        }
-        O.Page=O.resp.call({
-            routes:opts.routes,
-            route:function(hash,push){
-                if(hash instanceof Object){
-                    hash=hash.state||'';
-                }
-                var h=hash.split(':');
-                if(h[0]==''&&this.routes.index){
-                    return this.route('index');
-                }
-                let r,r1=h.shift(),dgsk;
-                if(!(r=this.routes[r1])){
-                   if(opts.regkeys){
-                     let bu=this;
-                     Object.keys(this.routes).reduce(function(t,n){
-                       if(n.match(/^[\/\#\@](.+)[\/\#\@]$/)){
-                         dgsk=new RegExp(n.replace(/^([\/\#\@])/, '^').replace(/([\/\#\@])$/, '\/*$')).exec(r1);
-                         if(dgsk){dgsk.shift();r=bu.routes[n];}
-                         else r=bu.routes.none;
-                       }
-                     })
-                   }else r=this.routes.none;
-                }
-                if(typeof r=='string'){return this.route(r);}
-                if(typeof r=='function'){r.apply(null,h);}
-                if(r instanceof Element){
-                    this.now=r;
-                    if(r.wake){r.wake.apply(r,[dgsk,h]);}else{opts.handler(r);}
-                }
-                window.history[(push?'push':'replace')+'State'](hash,null,'#/'+hash)
-            }
-        },{now:function(now){
-            // Önceki Beti atıl duruma sok
-            if(this.now&&this.now.idle){
-                this.now.idle();
-            }
-            this.title.set({page:now.name||''});
-        }});
-        let init=function(){
-            var title;
-            if(!(title='title'.get()).length){
-                document.head.append(title=['title'.init()])
-            }
-            if(title[0].innerHTML.indexOf('page₺')==-1){
-                title[0].set('page₺')
-            }
-            
-            this.title=title[0];
-            this.route(decodeURI(location.hash.substring(2)),1);
-            window.onpopstate=this.route.bind(this);
-        };
-        O.ready.then(init.bind(O.Page));
-        return O.Page;
-    },
-    Page3:function(opts){
-        opts=O.combine({
-            routes:{},
-            none:"Bulunamadı".prop({
-               name: 'Bulunamadı'
-            }).layout([
-               ["center", [
-                'h1'.set('Bet Bulunamadı'),
-                'p'.set("Aradığınız bet bulunamadı")
-               ]]
-            ]),
-            initialResolver:function(loc){
-                // belge yüklendiğinde #/betadı şeklindeki bulunağı çözümler
-                return decodeURI(location.hash.substring(2))
-            },
-            /* bu işlev bir söz olmalı çözüm olarak 3 alanlı dizi döndürmelidir:
-             * [
-             *   Belirlenen Bet,            * örn: kullanıcı
-             *   Beti uyandırma girdileri,  *      123, yazılar
-             *   URLde çıkacak tam yol      *      #/kullanıcı/123/yazılar
-             * ]
-             */
-            resolver:(function(hash){
-                // #/betadı şeklinde url döndürür
-                var page,
-                fullpath='#/'+hash,
-                args=hash.split(':');
-                if(r=O.Page.routes[args.shift()]){
-                    r={bet:r,args:args,fp:fullpath,hash:hash}
-                }else{
-                    r={bet:r,args:[],fp:fullpath,hash:'none'}
-                };
-                return r;
-            }).prom(),
-            handler:function(Oge){
-                document.body.html(Oge);
-            }
-        },opts||{});
-        opts.routes.none=opts.none;
-        Element.prototype.router=function(r){
-            return this.resp('route',function(route){
-                if(this.route){
-                    delete  O.Page.routes[this.route];
-                }
-                let s=this;
-                O.Page.routes[route]=function(r){
-                    if(s.once){
-                        s.once();
-                        delete s.once;
-                        return 0;
-                    }
-                    s.wake();
-                }
-            }).prop('route',r);
-        }
-        let resolveComplete=(function(r){
-            if(r){
-                if(typeof r=='string'){
-                    this.route(r);
-                }else if(r instanceof Object){
-                    if(r.bet.once){
-                        r.bet.once.call(r.bet,r.hash);
-                        delete r.bet.once;
-                        return 0;
-                    }else{
-                        r.bet.wake.call(r.bet,r.hash);
-                    }
-                    window.history[(push?'push':'replace')+'State'](r.hash,null,r.fp)
-                }
-            } if(r instanceof Element){
-                    this.now=r;
-                    if(r.once){
-                        r.once.apply(r,args);
-                        delete r.once;
-                        return 0;
-                    }
-                    if(r.wake){r.wake.apply(r,args);}else{opts.handler(r,args);}
-                }
-        }).bind(this)
-        O.Page=O.resp.call({
-            routes:opts.routes,
-            route:function(hash,push){
+    /*
+        O.Disklet('birUçnokt?id=id₺',{açar:OTURUMAÇARI},'uç_','*')
+        url         : uçnokta ya da URL , id₺ değişkeni kullanılabilir.
+        .           : {static:URL,when:('init'||'requested')} bu kullanımla 
+        .           : durağan bir veriyi yükleyebilirsiniz.
+        .
+        data        : her istekte post ile gönderilecek veri nesnesi, id: açarı girilirse istenen açarla değiştirilir
+        diskPrefix  : Yerel yığınağa kaydedilirken hangi öneke iye olacağı
+        fields      : kaynaktan gelen verilerin hangi açarlarının gerekli olduğu.
+        expire      : her bir nesnenin yerel yığınakta önbelleklenme süresi
 
-                if(hash instanceof Object){
-                    hash=hash.state||'';
-                }
-                if(['/',''].indexOf(hash)>-1&&this.routes.index){
-                    return this.route('index');
-                }
-                if(!(r=this.routes[hash])){
-                    return opts.resolver(hash).then(resolveComplete).catch(function(){
-                        resolveComplete(false);
+    */
+    Disklet:function(url,data,diskPrefix,fields,expire){
+        if(url instanceof Object){
+            expire=fields||300;
+            fields=diskPrefix;
+            diskPrefix=data;
+            data=null;
+            let Src={_ready:-1,sum:function(keys){
+                let s=this;
+                return Object.keys(s).reduce(function(n,i){
+                    if(i!='sum'&&i!='_ready'){
+                        n[i]=keys.of(s[i]);
+                    }
+                    return n;
+                },{});
+            }};
+            let ready=function(){
+                return new Promise(function(res,rej){
+                    if(O.Disk[diskPrefix]){
+                        Src._ready=1;
+                        O.combine(Src,O.Disk[diskPrefix]);
+                        Src.sum=Src.sum.bind(Src);
+                        res(Src);
+                    }else if(Src._ready==-1){
+                        O.req(url.static).then(function(data){
+                            if(fields!='*'){
+                                data=Object.keys(data).reduce(function(o,i){
+                                    o[i]=fields.from(data[i]);
+                                });
+                            }
+                            Src._ready=1;
+                            O.combine(Src,O.Disk[diskPrefix]);
+                            Src.sum=Src.sum.bind(Src)
+                            O.Disk.expire(diskPrefix,expire);
+                            res(Src);
+                        })
+                    }
+                });
+            }
+            if(url.when=='init'){
+                ready();
+            }
+            return new Proxy(Src,{
+                get:function(o,k){
+                    return new Promise(function(res,rej){
+                        if(o._ready==1){
+                            res(o[k]);
+                        }else{
+                            ready().then(function(Src){
+                                o=Src;
+                                res(o[k]);
+                            })
+                        }
                     });
-                }else{
-                    resolve({r:1});
+                    return o[k];
                 }
-                
-            }
-        },{now:function(now){
-            // Önceki Beti atıl duruma sok
-            if(this.now&&this.now.idle){
-                this.now.idle();
-            }
-            this.title.set({page:now.name||''});
-        }});
-        let init=function(){
-            var title;
-            if(!(title='title'.get()).length){
-                document.head.append(title=['title'.init()])
-            }
-            if(title[0].innerHTML.indexOf('page₺')==-1){
-                title[0].set('page₺')
-            }
-            
-            this.title=title[0];
-            this.route(this.initialResolver(location),1);
-            window.onpopstate=this.route.bind(this);
-        };
-        O.ready.then(init.bind(O.Page));
-        return O.Page;
+            });
+        }else{
+            return new Proxy(O.Disk,{
+                get:function(o,k){
+                    return new Promise(function(res,rej){
+                        let key=(diskPrefix||'')+k;
+                        if(o[key]){
+                            res(o[key]);
+                        }else{
+                            if(data&&data.id){
+                                data.id=k;
+                            }
+                            O.req(url.vars({id:k}),data).then(function(r){
+                                res(o[key]=fields.of(r));
+                                if(expire){
+                                    O.Disk.expire(key,expire);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
     },
-    Sock:function(opts){
-        opts=O.combine({
-            url:'/',
-        },typeof opts =='string'?{url:opts}:(opts||{}));
-        
-        var yuva;
-        var conn = function(){
-          yuva = new WebSocket(opts.url.startsWith('ws://') ? opts.url : 'wss://'+opts.url);
-        };
-        conn();
-        let olay;
-
-        yuva.addEventListener('message', function (event) {
-            let veri = event.data.split(",")
-            olay = veri[0];
-            veri.shift();
-            yuva.dispatchEvent(new MessageEvent(olay, {data: veri.join(",")}));
-        });
-
-        yuva.addEventListener('close', function(ev){
-          conn();
-        })
-        return yuva;
-    },
-
 
     /*
         let chain=O.Chain([f(),g(),h()]);
@@ -681,41 +452,6 @@ var O,Otag=O={
         }
         return d;
     }
-    ,_selector2:function(s){
-
-        var d= ['div'].concat([
-            /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
-            /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
-            /\#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
-            /[\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-            /\:(\w+)/g
-        ].map(function(r,j){
-            if(typeof r =='string'){return r;}
-            var l=j==1?{}:[],rm=[],e,i=-1;
-
-            while((e=r.exec(s))&&r.lastIndex!=i){
-                rm.push(e[0]);
-                i=r.lastIndex;
-                if(j==1){
-                    l[e[1]]=e[2];
-                }else{
-                    l.push(e[1]);
-                }
-            }
-            rm.forEach(function(i){
-                s=s.replace(i,'');
-            });
-            return l;
-        }));
-        let e;
-        if(e=/^[a-zşüöçığ][a-zşüöçığ0-9]+$/g.exec(s)){
-            s=s.replace(d[0]=e[0],'');
-        }
-        if(s.length){
-            d[1]=d[1].concat(s.split(' '))
-        }
-        return d;
-    },
     /*
         ₺M:Model ve ₺Bileşen tanımlamak içindir.
     */
@@ -748,7 +484,7 @@ var O,Otag=O={
         };return Math.floor(t.getTime()/1000)}}),
     /*
         O.Disk.açar = 'değer'
-        O.Disk.açar             // 'değer'
+        O.Disk.açar        // 'değer'
         delete O.Disk.açar
 
         Yerel Yığınağa bilgi yazmak/okumak/silmek için kullanılır.
@@ -760,7 +496,8 @@ var O,Otag=O={
             k.forEach(function(i){
                 localStorage.removeItem(i);
             });
-    }},{
+        }
+    },{
         get:function(o,k){
             if(o[k]){return o[k];}
             let e;
@@ -853,6 +590,7 @@ var O,Otag=O={
     },
     /*
         Uluslararasılaştırma(U18A) Betliği
+        // ! Kararsız, değişiklikler oluşabilir
     */
     i18n:function(opts){
         opts=O.combine({
@@ -1126,7 +864,7 @@ var O,Otag=O={
             }
             return this;
         },
-        //create UI layout
+        // Kullanıcı arayüzü şablonu oluşturur
         layout:function(lay,master){
             let s=master||this;
             this.innerHTML='';
@@ -1142,22 +880,17 @@ var O,Otag=O={
                 })
             );
         },
-        layout2:function(lay,master){
-            let s=master||this;
-            this.innerHTML='';
-            return this.append(
-                (lay._||Object.keys(lay)).map(function(i){
-                    if(lay[i] instanceof Element){
-                        return lay[i];
-                    }else if(lay[i] instanceof Object){
-                        return i.layout2(lay[i],s);
-                    }else{
-                        return s.V(lay[i])||lay[i].init();
-                    }
-                })
-            );
-        },
+        /*
+            Ata yöntemi çağırır
+            .has ile çalışır
+            'Ata'.prop({
+                okAt:f(yayTürü)
+            }).has({
+                Çocuk:'Çocuk'.do('okAt','click',['uzunYay'])
+            })
+        */
         do:function(method,on,args){
+            if(arguments[3]){args=O.toArray(arguments).splice(2);}
             return this.prop('on'+(on||'click'),function(){
                 this.parent[method].apply(this.parent,args||[]);
             });
@@ -1389,7 +1122,7 @@ var O,Otag=O={
 
             this.href=href||addr;
             this.addr=addr;
-            if(!this.onclick){
+            if(addr.indexOf('//')==-1&&!this.onclick){
                 this.onclick=function(e){
                     e.preventDefault();
                     if(O.Page!='function'){
@@ -1397,10 +1130,6 @@ var O,Otag=O={
                     }
                 }
             }
-            return this;
-        },
-        subs:function(_activator){
-            O._R.push(this);
             return this;
         },
         /*
@@ -1413,11 +1142,11 @@ var O,Otag=O={
             Öge='Öge'.has({a:'',b:''}).connect('otag_id',Veri);
             Öge.otag_id = 1 // Öge 1 deki verilerle güncellenir..
 
-            Eğer veri kaynağı uç noktaysa O.Disklet ile birlikte kullanabilirsiniz.
-
-            .connect()
+            source(*)   : Veri Kaynağı(Nesne) | Disklet
+            on          : hangi özelliğe duyarlı   
+            nav         : null | true | {range:[int,int]} // .next .prev olsun mu
         */
-        connect:function(source,on,nav,range){
+        connect:function(source,on,nav){
             if(!source){
                 throw Error(".connect requires a data source. https://otagjs.org/#/belge/.connect");
             }
@@ -1438,6 +1167,11 @@ var O,Otag=O={
                 }).bind(this);
             
             if(nav){
+                let range=null;
+                if(nav instanceof Object&&nav.range){
+                    range=nav.range;
+                }
+                delete nav;
                 this.prop({
                     dataNav:function(to){
                         if(this.source[to]){
@@ -1484,8 +1218,6 @@ var O,Otag=O={
                 ad:/[a-zA-ZçğıöşüÇĞİÖŞÜ]+/g,
                 yaş: yaş => isFinite(yaş)&&yaş>18&&yaş<100
             })
-            
-
         */
         valid:function(validationMap,invalidCallback){
             this._validator=validationMap;
@@ -1538,25 +1270,6 @@ var O,Otag=O={
             if(!d.el.View){d.el.View={};}
             return d.el;
         },
-        init2:function(){
-            let s=this+'',d=O._selector2(s);
-            if(d[4].length){
-                if(!O.UI[d[4]]){console.log(d[4],'is not defined')};
-                d[0]=O.UI[d[4]].apply(d.ui,d[5].concat(O.toArray(arguments)));
-            }else{
-                d[0]=document.createElement(d[0]||'div');
-            }
-            //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
-            d[0].Class(d[1]).attr(d[2]);
-            if(d[3].length){
-                d[0].id=d[3][0];
-            }
-            if(d[0].tagName=='INPUT'){
-                d[0].addEventListener('keyup',function(e){if(e.keyCode==13&&this.enter){this.enter(this.value)}})
-            }
-            if(!d[0].View){d[0].View={};}
-            return d[0];
-        },
         /* 
             '#ResimKutusu'.extends('Bediz')
 
@@ -1577,8 +1290,8 @@ var O,Otag=O={
         */
 
         from:function(obj){
-            let r=this.split(',').map(function(i){return obj[i]});
-            return r.length==1?r[0]:r;
+            let r= (this=='*'?Object.keys(obj):this.split(',')).map(function(i){return obj[i]});
+            return (this.indexOf(',')==-1&&this!="*")?r[0]:r;
         },
         /* 
             Öge='Öge'.has({a:'a'.prop('value',1),b:'b'.prop('value',2)});
@@ -1704,19 +1417,19 @@ var O,Otag=O={
         }
     },
     WebSocket: {
-      on: function(trig,cb){
-          let bu = this;
-          if(typeof trig=='string'){
-              trig={[trig]:cb};
-          }
-          return Object.keys(trig).forEach(function(e){
-              bu.addEventListener(e,trig[e]);
-          });
-          return this;
-      },
-      emit: function(o,v){
-        return this.send(o+","+(typeof v == 'object'?JSON.stringify(v):v))
-      }
+        on: function(trig,cb){
+            let s = this;
+            if(typeof trig=='string'){
+                trig={[trig]:cb};
+            }
+            return Object.keys(trig).forEach(function(e){
+                s.addEventListener(e,trig[e]);
+            });
+            return this;
+        },
+        emit: function(o,v){
+            return this.send(o+","+(typeof v == 'object'?JSON.stringify(v):v))
+        }
     }
 }
 
