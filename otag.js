@@ -545,6 +545,82 @@ var O,Otag=O={
     },o);
   },
   /*
+    Ertelenmiş Kütüphane
+    Yazarlar: @Noras, @alpr
+  */
+  Sock:function(opts){
+    opts=O.combine({
+      url:null,       // websocket host
+      q:{},          // query object
+      interval:3000 // yeniden bağlanma 3s
+    },typeof opts =='string'?{url:opts}:(opts||{}));
+    opts.q=O.combine(opts.q,{_osid:O._uid(16)});
+    opts.url=opts.url||window.location.origin; // başarımı artırmak için öntanımlı opts nesnesinde değil
+
+    let r;
+    if(r=/((ws|http)s?):\/\//g.exec(opts.url)){
+      r=r[1];
+      if(r.substr(0,4)=='http'){
+        opts.url=(r.length>4?'wss://':'ws://')+opts.url.split('://')[1]
+      }
+    }else{
+      opts.url='wss://'+opts.url;
+    }
+    opts.url+='?'+O._queryString(opts.q);
+    let on={},socket,conn,connectInterval;
+
+    conn={
+      on:function(topic,f){
+        if(topic instanceof Object){
+          Object.keys(topic).forEach(function(t){
+            on[t]=topic[t];
+          })
+        }else{
+          on[topic]=f;
+        }
+        return this;
+      },
+      connect:function(){
+        if(!this.connection){
+          try{
+            socket=new WebSocket(opts.url+'&_tstamp='+O.Time.now);
+          }catch(e){
+            if(connectInterval){
+              clearInterval(connectInterval);
+            }
+            connectInterval=setInterval(function(c){
+              c.connect();
+            },opts.interval,this.lib);
+          }
+          if(connectInterval){
+            clearInterval(connectInterval);
+          }
+          this.connected=1;
+          socket.lib=this;
+          socket.onmessage=function(e){
+            e=e.data;
+            let offset=e.indexOf(','),topic=e.substr(0,offset);
+            if(on[topic]){
+              on[topic](JSON.parse(e.substring(offset+1)),this);
+            }
+          }
+          socket.onerror=socket.onclose=function(e){
+            if(e.type&&on[error])
+            this.lib.connected=0;
+            connectInterval=setInterval(function(c){
+              c.connect();
+            },opts.interval,this.lib);
+          }
+        }
+      },
+      emit:function(topic,message){
+        socket.send(topic+','+JSON.stringify(message));
+      }
+    }
+    conn.connect();
+    return conn;
+  },
+  /*
     O.req('veritabanı',{kimlik:''}).then(f(cevap))
     ep:     uçnokta,    YAZI
     data:   veri,       NESNE
@@ -558,16 +634,6 @@ var O,Otag=O={
     //backend+endpoint
     XHR.open(data?'POST':"GET",ep.indexOf('/')>-1?ep:(O._conf.req.ep.vars({ep:ep})),true);
     XHR.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    var s=function(obj, pr) {
-      var str = [];
-      for(var p in obj) {
-        if (obj.hasOwnProperty(p)) {
-        var k = pr ? pr + "[" + p + "]" : p, v = obj[p];
-        str.push(typeof v == "object" ?s(v, k) :encodeURIComponent(k) + "=" + encodeURIComponent(v));
-        }
-      }
-      return str.join("&");
-    };
     return new Promise(function(res,rej){
       XHR.onreadystatechange=function(){
         if(this.readyState==4){
@@ -586,9 +652,30 @@ var O,Otag=O={
           }
         }
       };
-      s=data?s(data):'';
-      XHR.send(s);
+      XHR.send(data?O._queryString(data):'');
     });     
+  },
+  _queryString:function(obj){
+    let pr=arguments[1];
+    var str = [];
+    for(var p in obj) {
+      if (obj.hasOwnProperty(p)) {
+        var k = pr ? pr + "[" + p + "]" : p, v = obj[p];
+        str.push(typeof v == "object" ?O._queryString(v, k) :encodeURIComponent(k) + "=" + encodeURIComponent(v));
+      }
+    }
+    return str.join("&");
+  },
+  _uid:function(len){
+    len=len||6;
+    let str='',rnd;
+    while(len--){
+      //A-Z 65-90
+      //a-z 97-122
+      rnd=Math.floor((Math.random(1e10)*1e5)%52);
+      str+=String.fromCharCode(rnd+(rnd<26?65:71));
+    }
+    return str;
   },
   /*
     Uluslararasılaştırma(U18A) Betliği
@@ -1254,7 +1341,7 @@ var O,Otag=O={
       init:function(){
         let s=this+'',d=O._selector(s);
         if(d.ui){
-          if(!O.UI[d.ui]){console.log(ui,'is not defined')};
+          if(!O.UI[d.ui]){console.log(d.ui,'is not defined')};
           d.el=O.UI[d.ui].apply(d.ui,d.args.concat(O.toArray(arguments)));
         }else{
           d.el=document.createElement(d.el||'div');
