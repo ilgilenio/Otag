@@ -581,7 +581,7 @@ var O,Otag=O={
         return this;
       },
       connect:function(){
-        if(!this.connection){
+        if(!this.connected){
           try{
             socket=new WebSocket(opts.url+'&_tstamp='+O.Time.now);
           }catch(e){
