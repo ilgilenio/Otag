@@ -567,9 +567,9 @@ var O,Otag=O={
       opts.url='wss://'+opts.url;
     }
     opts.url+='?'+O._queryString(opts.q);
-    let on={},socket,conn,connectInterval;
+    let on={},socket,connectInterval;
 
-    conn={
+    return ({
       on:function(topic,f){
         if(topic instanceof Object){
           Object.keys(topic).forEach(function(t){
@@ -612,13 +612,12 @@ var O,Otag=O={
             },opts.interval,this.lib);
           }
         }
+        return this;
       },
       emit:function(topic,message){
         socket.send(topic+','+JSON.stringify(message));
       }
-    }
-    conn.connect();
-    return conn;
+    }).connect();
   },
   /*
     O.req('veritabanı',{kimlik:''}).then(f(cevap))
