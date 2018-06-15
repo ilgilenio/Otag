@@ -345,7 +345,6 @@ var O,Otag=O={
       });
     });
     return new Proxy({
-      _connected:[],
       _conn:function(Elem,on){
         Store.push([Elem,on]);
       },
