@@ -5,7 +5,7 @@
   |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
       /|
 *         \|    2016-2018 ilgilenio® 
-*               Otag Çatı Çalışması 1.3
+*               Otag Çatı Çalışması 1.3.2
 *               https://gitlab.com/ilgilenio/Otag/wikis
 *               MIT ile dagitilmaktadir
 */
@@ -24,6 +24,23 @@ var O,Otag=O={
         }}));
       });
     })
+  },
+  /*
+    setInterval gibidir, geriye start,stop yöntemi olan bir nesne döndürür ve başlatmak için .start() çağırmanız gerekir.
+  */
+  interval:function(){
+    let interval,args=arguments;
+    return {
+      start:function(){
+        this.stop();
+        interval=setInterval.apply(null,args);
+        return this;
+      },
+      stop:function(){
+        clearInterval(interval);
+        return this;
+      }
+    }
   },
   /*
     Geçmiş/Yönlendirme/Sayfalama Yöneticisi
@@ -308,6 +325,39 @@ var O,Otag=O={
       });
     }
   },
+
+  Socklet:function(Sock,channel,data){
+    let Ref={};
+    Sock.on(channel,function(d){
+      Object.keys(d).forEach(function(i){
+        if(Ref[i]){
+          while(Ref[i].length){
+            Ref[i].pop()(d[i]);
+          }
+          delete Ref[i];
+        }
+      });
+    });
+    return new Proxy({set:function(n){
+      Sock.emit(channel,O.combine(Object.create(data),{set:n}));
+    }},{
+      get:function(o,k){
+        if(o[k]){
+          return o[k];
+        }
+        return new Promise(function(res,rej){
+          if(!Ref[k]){
+            Ref[k]=[];
+          }
+          Ref[k].push(res);
+          Sock.emit(channel,O.combine(Object.create(data),{get:k}));
+        });
+      },
+      set:function(o,k,v){
+        o.set({[k]:v});
+      }
+    })
+  },
   /*
     let chain=O.Chain([f(),g(),h()]);
     chain(ilkİşleveGirdiler).then(başarı).catch(başarısız);
@@ -567,8 +617,15 @@ var O,Otag=O={
       opts.url='wss://'+opts.url;
     }
     opts.url+='?'+O._queryString(opts.q);
-    let on={},socket,connectInterval;
+    let on={},socket,connectInterval,interval;
+    /*
+      interval:O.interval(conn.connect);
 
+  
+
+
+
+    */
     return ({
       on:function(topic,f){
         if(topic instanceof Object){
@@ -605,8 +662,13 @@ var O,Otag=O={
             }
           }
           socket.onerror=socket.onclose=function(e){
-            if(e.type&&on[error])
+            if(e.type=='error'&&on.error){
+              on.error(e);
+            }
             this.lib.connected=0;
+            if(connectInterval){
+              clearInterval(connectInterval);
+            }
             connectInterval=setInterval(function(c){
               c.connect();
             },opts.interval,this.lib);
@@ -863,16 +925,15 @@ var O,Otag=O={
       },
       interval:function(f,t,args,start){
         if(this._interval){
-          clearInterval(this._interval);
-        }
-        if(f=='stop'){return this;}
-        if(typeof f =='function'){
-          this.__interval=[function(i,a){f.apply(i,a||[]);},t,this,args];
-          this.__iParams=[f,args||[],t];
-        }
-        if(start||f=='start'){
-          this._interval=setInterval.apply(window,this.__interval);;
-          this.__iParams[0].apply(this,this.__iParams[1]);
+          if(typeof f=='string'){
+            this._interval[f]();
+          }
+        }else{
+          this.interval=O.interval.apply(null,[f.bind(this),t].concat(args));
+          if(start){
+            this.interval.start();
+            f.apply(this,args);
+          }
         }
         return this;
       },
@@ -1263,8 +1324,8 @@ var O,Otag=O={
               if(this.source[to]){
                 let p=this.source[to]
                 ,   f=(function(p){
-                    this[on]=p;
-                  }).bind(this);
+                  this[on]=p;
+                }).bind(this);
                 if(typeof p=='function'){
                   p=p();
                   p instanceof Promise?p.then(f):f(p);
