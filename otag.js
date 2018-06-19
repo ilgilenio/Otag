@@ -5,7 +5,7 @@
   |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
       /|
 *         \|    2016-2018 ilgilenio® 
-*               Otag Çatı Çalışması 1.3.2.2
+*               Otag Çatı Çalışması 1.3.2.3
 *               https://gitlab.com/ilgilenio/Otag/wikis
 *               MIT ile dagitilmaktadir
 */
@@ -16,7 +16,7 @@ var O,Otag=O={
     js    : dosyanın  adı (sonuna .js yazmadan)
     path  : dosyanın yolu
   */
-  require:function(js,path){
+  include:function(js,path){
     return new Promise(function(res,rej){
       O.ready.then(b=>{
         document.head.append('script'.attr('src',(path||'')+js+'.js').prop({onload:function(){
