@@ -25,6 +25,18 @@ var O,Otag=O={
       });
     })
   },
+  
+  require:function(js,path){
+    return new Promise(function(res,rej){
+      O.ready.then(b=>{
+        O.req((path||'')+js+'.js').then(function(code){
+          let module={},window=undefined;
+          eval(code);
+          res(module.exports);
+        })
+      });
+    })
+  },
   /*
     setInterval gibidir, geriye start,stop yöntemi olan bir nesne döndürür ve başlatmak için .start() çağırmanız gerekir.
   */
