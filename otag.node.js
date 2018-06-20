@@ -145,17 +145,6 @@ var O,Otag=O={
         },this||{});
     },
     /*
-        ₺M:Model ve ₺Bileşen tanımlamak içindir.
-    */
-    define:function(cls,methods){
-        if(!this[cls]){
-            this[cls]={};
-        }
-        Object.keys(methods).forEach(function(i){
-            this[cls][i]=methods[i];
-        },this);
-    },
-    /*
         O.Time.now       Şimdi (UNIX zamanı) sn cinsinden verir.
         O.Time.yesterday Dünün ilk sn verir.
 
@@ -180,9 +169,7 @@ var O,Otag=O={
     */
     ,Disk:new Proxy({available:true,rem:function(k){
         if(typeof k=='string'){k=[k];}
-        k.forEach(function(i){
-            localStorage.removeItem(i);
-        });
+       console.log('Bu özellik Eklenecek');
     }},{
         get:function(o,k){
             if(o[k]){return o[k];}
@@ -227,150 +214,6 @@ var O,Otag=O={
                 return o;
             },o);
         },o);
-    }
-    /*
-        O.req('veritabanı',{kimlik:''}).then(f(cevap))
-        ep:     uçnokta,    YAZI
-        data:   veri,       NESNE
-
-        AJAX isteği yapar; data boş ise GET, dolu ise POST isteği yapar.
-        Söz döndürür.
-
-    */
-    ,req:function(ep,data,upload){
-        var XHR=new XMLHttpRequest();
-        
-        //backend+endpoint
-        XHR.open(data?'POST':"GET",ep.indexOf('/')>-1?ep:(O._conf.backend+ep),true);
-        XHR.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-        var s=function(obj, pr) {
-            var str = [];
-            for(var p in obj) {
-                if (obj.hasOwnProperty(p)) {
-                var k = pr ? pr + "[" + p + "]" : p, v = obj[p];
-                str.push(typeof v == "object" ?s(v, k) :encodeURIComponent(k) + "=" + encodeURIComponent(v));
-                }
-            }
-            return str.join("&");
-        };
-        return new Promise(function(res,rej){
-            XHR.onreadystatechange=function(){
-                if(this.readyState==4){
-                    if(this.status==200){
-                        if(this.response!=''){
-                            var r;
-                            try{
-                                r=JSON.parse(this.response);
-                            }catch(e){
-                                r=this.response;
-                            }
-                            res(r);
-                        }else{rej('');}
-                    }else{
-                        rej({error:{code:this.status}});
-                    }
-                }
-            };
-            s=data?s(data):'';
-            XHR.send(s);
-        });     
-    }
-    /*
-        Uluslararasılaştırma(U18A) Betliği
-    */
-    ,i18n:{
-        _:{lang:null,map:null,rtl:[],ranges:[1],scope:''},
-        get:function(phrase){
-            let e=this;
-            return new Promise(function(res,rej){
-                e.ready.then(function(){
-                    var phr=Math.floor(phrase);
-                    phrase=Math.round(phrase%1*10);
-                    if(e._.phr[phr]){
-                        res(e._.phr[phr].split('=')[phrase]);
-                    }else{
-                        rej();
-                    }
-
-                });
-            });
-        },
-        refresh:function(){
-            ('[phrase]').get().map(O.F.each('Lang'));
-        },
-        ready:new Promise(function(res,rej){
-
-            let i=setInterval(function(){
-                let c=O.i18n._;
-                if(c.r?(c.r==c.ranges.length):c.phr&&Object.keys(c.phr).length){
-                    clearInterval(i);
-                    res(1);
-                    c.div.value=c.lang;
-                }
-            },100);
-        }),
-        set:function(language){
-            O.Disk._lang=language;
-            O.ready.then(b=>b.Class('rtl',O.i18n._.rtl.indexOf(O.Disk._lang)==-1));
-            let e=this,c=e._,set=function(res){
-                c.lang=language;
-                O.Disk['_l'+c.lang+(this[1]||'')+e._.scope]=res;
-                res=res.split('\n');
-                if(e._.map){res=res.map(e._.map);}
-                res.forEach(function(i,j){
-                    c.phr[j+this]=i;
-                },this[0]||1);
-                if(this[2]=='net'){
-                    var t=O.Disk_lTime||Array.from({length:c.ranges.length}).map(function(){return 0});
-                    t[this[1]]=O.Time.now;
-                    O.Disk._lTime=t;
-                }
-                c.r++;
-                e.refresh();
-            };
-            e.refresh();
-            c.phr=null;
-            if(c.path){
-                var res;
-                c.phr={};
-                (c.ranges||[1]).forEach(function(i,j){
-                    if(res=O.Disk['_l'+language+(j||'')+e._.scope]){
-                        set.call([i,j],res);
-                    }else{
-                        O.req(this.vars({lang:language,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
-                    }
-                    
-                },c.path);
-            }else{
-                c.lang=language;
-            }
-        },
-        init:function(config){
-            if(config.ranges){config.r=0;}
-            O.combine(this._,config);
-            var last,t,t2;
-            if(last=O.Disk._lTime&&(t='otag[i18n]'.get()).length){
-                t=t[0].attr('i18n'),t2=O.Time.now;
-                t=t.indexOf(',')==-1?Number(t):t.split(',').map(Number);
-                var rem=[];
-                (config.ranges||[1]).forEach(function(i,j){
-                    if(t2<(typeof t=='number'?t:t[j])){
-                        rem=rem.concat(Object.keys(config.langs).map(function(l){return '_l'+l+(j||'')+(config.scope||'')}));
-                    }
-                });
-                console.log(rem);
-                O.Disk.rem(rem);
-            }
-            var lang=(O.Disk._lang||navigator.language.substr(0,2).toLowerCase());
-            this.set(Object.keys(this._.langs).indexOf(lang)==-1?'en':lang);
-            this._.div.prop({onchange:function(){
-                O.i18n.set(this.value);
-            }})
-            .has(
-                Object.keys(this._.langs).map(function(i,j){
-                    return'option'.prop({value:i,selected:i==this[0]}).set(this[1][i]);
-                },[this.get(),this._.langs]));
-        }
     }
     /*
         Nesne={a:1,b:2,_:'b,a'};
