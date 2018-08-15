@@ -1,10 +1,13 @@
 {
   "name": "otag",
-  "version": "1.1",
+  "version": "1.3.2",
   "description": "Değişen ve gelişen günümüz teknolojisine layık **Hızlı**, **Yalın**, **Yenilikçi** “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.",
-  "main": "otag.js",
+  "main": "o.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "bundle": "rollup -c rollup.config.js"
+  },
+  "dependencies": {
+    "nesne": "^1.0.0"
   },
   "repository": "git+https://github.com/ilgilenio/Otag.git",
   "keywords": [],
@@ -13,5 +16,12 @@
   "bugs": {
     "url": "https://github.com/ilgilenio/Otag/issues"
   },
-  "homepage": "https://github.com/ilgilenio/Otag#readme"
+  "homepage": "https://github.com/ilgilenio/Otag#readme",
+  "devDependencies": {
+    "eslint": "^5.2.0",
+    "eslint-config-standard": "^11.0.0",
+    "rollup": "^0.64.1",
+    "rollup-plugin-terser": "^1.0.1",
+  },
+  "module": "dist/o.js"
 }
