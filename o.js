@@ -12,6 +12,7 @@
 'use strict'
 
 import DOM from './lib/DOM'
+
 import i18n from './lib/i18n'
 import Time from './lib/Time'
 import Chain from './lib/Chain'
@@ -19,11 +20,9 @@ import Page from './lib/Page'
 import Net from './lib/Net'
 
 import Nesne from 'nesne'
-import Disk from 'O.Disk'
+import Disk from 'o.disk'
 
-if(typeof window!=='undefined'){
-  DOM(window)
-}
+DOM(global||window)
 
 let config = {
   req:{ep:'/ep₺'},
@@ -59,35 +58,6 @@ export default class Otag {
     })
     
   }
-  /*
-    Betik getirir, 
-    js    : dosyanın  adı (sonuna .js yazmadan)
-    path  : dosyanın yolu
-  */
-  include (js, path) {
-    return new Promise(function (res) {
-      O.ready.then(() => {
-        document.head.append('script'.attr('src', (path || '') + js + '.js').prop({onload: function () {
-          res(js)
-        }}))
-      })
-    })
-  }
-  
-  require (js, path) {
-    return new Promise(function (res) {
-      O.ready.then(() => {
-        O.req((path || '') + js + '.js').then(function (code) {
-          let module = {}, window = undefined
-          eval(code)
-          res(module.exports)
-        })
-      })
-    })
-  }
-  /*
-    setInterval gibidir, geriye start,stop yöntemi olan bir nesne döndürür ve başlatmak için .start() çağırmanız gerekir.
-  */
   interval (){
     let interval,args = arguments
     return {
@@ -102,15 +72,6 @@ export default class Otag {
       }
     }
   }
-    
-  /*
-    O.resp.call({},{prop:f()})
-
-    prop    : Duyarlı özellik
-    f       : Atanırken çağrılacak işlev
-
-    Bir nesneye tanıma duyarlı özellik tanımlar.
-  */
   resp (prop,f){
     if(typeof prop == 'string'){
       prop = {[prop]:f}

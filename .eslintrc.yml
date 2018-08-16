@@ -28,3 +28,6 @@ rules:
   comma-spacing:
     - error
     - after : true
+  key-spacing:
+    - error
+    - afterColon : true

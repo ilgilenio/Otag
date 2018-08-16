@@ -7,7 +7,8 @@
     "bundle": "rollup -c rollup.config.js"
   },
   "dependencies": {
-    "nesne": "^1.0.0"
+    "nesne": "^1.0.0",
+    "o.disk": "^2.0.0"
   },
   "repository": "git+https://github.com/ilgilenio/Otag.git",
   "keywords": [],
@@ -22,6 +23,8 @@
     "eslint-config-standard": "^11.0.0",
     "rollup": "^0.64.1",
     "rollup-plugin-terser": "^1.0.1",
+    "webpack": "^4.16.5",
+    "webpack-cli": "^3.1.0"
   },
   "module": "dist/o.js"
 }
