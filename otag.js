@@ -1,148 +1,145 @@
-﻿/*    _             _
+﻿/*   _             _
   o  | |        o  | |                o
  _   |/   __,  _   |/   __  _  __    _    __
   |  |   /  | / |  |   |_/ / |/  |  / |  /  \
   |_/|__/\_/|/  |_/|__/|__/  |   |_/  |_/\__/
-      /|
+          /|
 *         \|    2016-2018 ilgilenio® 
-*               Otag Çatı Çalışması 1.3.2.2
+*               Otag Çatı Çalışması 1.3.2.3
 *               https://gitlab.com/ilgilenio/Otag/wikis
 *               MIT ile dagitilmaktadir
 */
-"use strict"
-var O,Otag=O={
-  /*
-    Betik getirir, 
-    js    : dosyanın  adı (sonuna .js yazmadan)
-    path  : dosyanın yolu
-  */
-  require:function(js,path){
-    return new Promise(function(res,rej){
-      O.ready.then(b=>{
-        document.head.append('script'.attr('src',(path||'')+js+'.js').prop({onload:function(){
-          res(js);
-        }}));
-      });
+'use strict'
+var O, Otag = O = {
+  include(js, path) {
+    return new Promise(res => {
+      O.ready.then(() => {
+        document.head.append('script'.attr('src', (path || '') + js + '.js').prop({onload() {
+          res(js)
+        }}))
+      })
     })
   },
-  /*
-    setInterval gibidir, geriye start,stop yöntemi olan bir nesne döndürür ve başlatmak için .start() çağırmanız gerekir.
-  */
-  interval:function(){
-    let interval,args=arguments;
+  
+  require(js, path) {
+    return new Promise(res => {
+      O.ready.then(() => {
+        O.req((path || '') + js + '.js').then(code => {
+          let module = {}, window = undefined
+          eval(code)
+          res(module.exports)
+        })
+      })
+    })
+  },
+
+  interval(){
+    let interval, args = arguments
     return {
-      start:function(){
-        this.stop();
-        interval=setInterval.apply(null,args);
-        return this;
+      start(){
+        this.stop()
+        interval = setInterval.apply(null, args)
+        return this
       },
-      stop:function(){
-        clearInterval(interval);
-        return this;
+      stop(){
+        clearInterval(interval)
+        return this
       }
     }
   },
-  /*
-    Geçmiş/Yönlendirme/Sayfalama Yöneticisi
-    Belirlediğiniz yollara göre işlev çağırabilirsiniz, yönlendirme yapabilirsiniz
-    Öge uyandırabilirsiniz.
-    
-    Örnek kullanım
-    https://ilgilenio.github.io/Otag/ornekler/Atasozleri
-    // ! Kararsız, değişiklikler oluşabilir.
-  */
-  Page:function(opts){
-    opts=O.combine({
+  
+  Page(opts){
+    opts = Object.assign({
       routes:{},
       Nav:true,
       hide:[],
-      none:"Bulunamadı".prop({
-         name: 'Bulunamadı'
+      none:'Bulunamadı'.prop({
+        name: 'Bulunamadı'
       }).layout([
-         ["center", [
-        'h1'.set('Bet Bulunamadı'),
-        'p'.set("Aradığınız bet bulunamadı")
-         ]]
+        ['center', [
+          'h1'.set('Bet Bulunamadı'),
+          'p'.set('Aradığınız bet bulunamadı')
+        ]]
       ]),
-      handler:function(Oge){
-        document.body.html(Oge);
+      handler(Oge){
+        document.body.html(Oge)
       }
-    },opts||{});
-    opts.hide.push('none');
-    opts.routes.none=opts.none;
-    Element.prototype.router=function(r){
-      return this.resp('route',function(route){
+    }, opts || {})
+    opts.hide.push('none')
+    opts.routes.none = opts.none
+    Element.prototype.router = function(r){
+      return this.resp('route', function(route){
         if(this.route){
-          delete  O.Page.routes[this.route];
+          delete  O.Page.routes[this.route]
         }
-        O.Page.routes[route]=this;
-      }).prop('route',r);
+        O.Page.routes[route] = this
+      }).prop('route', r)
     }
-    O.Page=O.resp.call({
-      to:new Proxy({},{
-        get:function(o,k){
+    O.Page = O.resp.call({
+      to:new Proxy({}, {
+        get(o, k){
           return function(){
             if(this){
-              let args=O.toArray(arguments);
-              return function(){
-                O.Page.routeSilent(k,(args.concat(O.toArray(arguments))));
-            }}
-            O.Page.routeSilent(k,O.toArray(arguments));
+              let args = O.toArray(arguments)
+              return ()=>{
+                O.Page.routeSilent(k, (args.concat(O.toArray(arguments))))
+              }}
+            O.Page.routeSilent(k, O.toArray(arguments))
           }
         }
       }),
-      routes:new Proxy({},{
-        set:function(o,k,v){
-          o[k]=v;
-          if(opts.Nav&&v instanceof Element&&(opts.hide.indexOf(k)<0)){
-            O.Page.Nav.append('a'.link(k,'#/'+k).set(v.name));
+      routes:new Proxy({}, {
+        set(o, k, v){
+          o[k] = v
+          if(opts.Nav && v instanceof Element && (opts.hide.indexOf(k) < 0)){
+            O.Page.Nav.append('a'.link(k, '#/' + k).set(v.name))
 
           }
-          return true;
+          return true
         },
-        get:function(o,k){
-          return o[k]?o[k]:null;
+        get(o, k){
+          return o[k] ? o[k] : null
         }
       }),
-      routeSilent:function(page,args,push){
-        if(page==''&&this.routes.index){
-          return this.routeSilent('index',args);
+      routeSilent(page, args, push){
+        if(page == '' && this.routes.index){
+          return this.routeSilent('index', args)
         }
-        let r;
-        if(!(r=this.routes[page])){
-           r=this.none;
+        let r
+        if(!(r = this.routes[page])){
+          r = this.none
         }
-        if(typeof r=='string'){return this.routeSilent(r,args);}
-        if(typeof r=='function'){r.apply(null,args);}
+        if(typeof r == 'string'){return this.routeSilent(r, args)}
+        if(typeof r == 'function'){r.apply(null, args)}
         if(r instanceof Element){
-          this.now=r;
+          this.now = r
           if(opts.handler){
-            let handle=function(r){
+            let handle = r => {
               if(opts.handler.handle){
-                opts.handler.handle(r);
+                opts.handler.handle(r)
               }else{
-                opts.handler.html(r);
+                opts.handler.html(r)
               }
             }
-            if(typeof opts.handler =='function'){
-              opts.handler(r);
+            if(typeof opts.handler == 'function'){
+              opts.handler(r)
 
-            }else if(typeof opts.handler=='string'){
-              O.ready.then(b=>(opts.handler=opts.handler.get())&&handle(r))
+            }else if(typeof opts.handler == 'string'){
+              O.ready.then(()=>(opts.handler = opts.handler.get()) && handle(r))
             }else{
-              handle(r);
+              handle(r)
             }
           }
           if(r.once){
-            r.once.apply(r,args);
-            delete r.once;
+            r.once.apply(r, args)
+            delete r.once
           }else
-          if(r.wake){r.wake.apply(r,args);}
+          if(r.wake){r.wake.apply(r, args)}
         }
-        window.history[(push?'push':'replace')+'State'](page,null,'#/'+page)
+        window.history[(push ? 'push' : 'replace') + 'State'](page, null, '#/' + page)
       },
 
-      route:function(hash,push){
+      route(hash, push){
         /* 
           if(hash instanceof Object){
           hash=hash.state||'';
@@ -150,1590 +147,1238 @@ var O,Otag=O={
         if(opts.resolver){
           opts.resolver(hash).then(this.routeComplete);
         }*/
-        if(hash instanceof Object&&!(hash instanceof Array)){
-          hash=hash.state||'';
+        if(hash instanceof Object && !(hash instanceof Array)){
+          hash = hash.state || ''
         }
-        var h=hash.split('/');
+        var h = hash.split('/')
         if(hash instanceof Array){
-          h=hash;
-          hash=hash.join('/');
+          h = hash
+          hash = hash.join('/')
         }else{
-          h=hash.split('/')
-          if(h[0]=='#'){h.shift();}
+          h = hash.split('/')
+          if(h[0] == '#'){h.shift()}
         }
-        if(h[0]==''&&this.routes.index){
-          return this.route('index');
+        if(h[0] == '' && this.routes.index){
+          return this.route('index')
         }
-        let r,r1;
-        if(!(r=this.routes[h.shift()])){
-           r=this.none;
+        let r
+        if(!(r = this.routes[h.shift()])){
+          r = this.none
         }
-        if(typeof r=='string'){return this.route(r);}
-        if(typeof r=='function'){r.apply(null,h);}
+        if(typeof r == 'string'){return this.route(r)}
+        if(typeof r == 'function'){r.apply(null, h)}
         if(r instanceof Element){
-          this.now=r;
+          this.now = r
           if(opts.handler){
-            let handle=function(r){
+            let handle = r=> {
               if(opts.handler.handle){
-                opts.handler.handle(r);
+                opts.handler.handle(r)
               }else{
-                opts.handler.html(r);
+                opts.handler.html(r)
               }
             }
-            if(typeof opts.handler =='function'){
-              opts.handler(r);
+            if(typeof opts.handler == 'function'){
+              opts.handler(r)
 
-            }else if(typeof opts.handler=='string'){
-              O.ready.then(b=>(opts.handler=opts.handler.get())&&handle(r))
+            }else if(typeof opts.handler == 'string'){
+              O.ready.then(()=>(opts.handler = opts.handler.get()) && handle(r))
             }else{
-              handle(r);
+              handle(r)
             }
           }
           if(r.once){
-            r.once.apply(r,h);
-            delete r.once;
+            r.once.apply(r, h)
+            delete r.once
           }else
-          if(r.wake){r.wake.apply(r,h);}
+          if(r.wake){r.wake.apply(r, h)}
         }
-        window.history[(push?'push':'replace')+'State'](hash,null,'#/'+hash)
+        window.history[(push ? 'push' : 'replace') + 'State'](hash, null, '#/' + hash)
       }
-    },{now:function(now){
+    }, {now(now){
       // Önceki Beti atıl duruma sok
-      if(this.now&&this.now.idle){
-        this.now.idle();
+      if(this.now && this.now.idle){
+        this.now.idle()
       }
-      let name=now.name;
-      if(isFinite(name)&&typeof O.i18n!='function'){
-        let s=this.title;
-        name=O.i18n.get(name).then(function(name){
-          s.set({page:name||''});
-        });
+      let name = now.name
+      if(isFinite(name) && typeof O.i18n != 'function'){
+        let s = this.title
+        name = O.i18n.get(name).then(name => {
+          s.set({page:name || ''})
+        })
       }else{
-        this.title.set({page:name||''});
+        this.title.set({page:name || ''})
       }
       
-    }});
+    }})
     if(opts.Nav){
-      O.Page.Nav=opts.Nav==true?'Nav'.init():opts.Nav;
+      O.Page.Nav = opts.Nav == true ? 'Nav'.init() : opts.Nav
     }
-    Object.keys(opts.routes).forEach(function(v){
-      O.Page.routes[v]=opts.routes[v];
+    Object.keys(opts.routes).forEach(v =>{
+      O.Page.routes[v] = opts.routes[v]
     })
-    let init=function(){
-      var title;
-      if(!(title='title'.get()).length){
-        document.head.append(title=['title'.init()])
+    let init = function(){
+      var title
+      if(!(title = 'title'.get()).length){
+        document.head.append(title = ['title'.init()])
       }
-      if(title[0].innerHTML.indexOf('page₺')==-1){
+      if(title[0].innerHTML.indexOf('page₺') == -1){
         title[0].set('page₺')
       }
       
-      this.title=title[0];
-      this.route(decodeURI(location.hash.substring(2)),1);
-      window.onpopstate=this.route.bind(this);
-    };
-    O.ready.then(init.bind(O.Page));
-    return O.Page;
+      this.title = title[0]
+      this.route(decodeURI(location.hash.substring(2)), 1)
+      window.onpopstate = this.route.bind(this)
+    }
+    O.ready.then(init.bind(O.Page))
+    return O.Page
   },
-  /*
-    O.Disklet('birUçnokta?id=id₺',{açar:OTURUMAÇARI},'uç_','*')
-    url         : uçnokta ya da URL , id₺ değişkeni kullanılabilir.
-    .           : {static:URL,when:('init'||'requested')} bu kullanımla 
-    .           : durağan bir veriyi yükleyebilirsiniz.
-    .
-    data        : her istekte post ile gönderilecek veri nesnesi, id: açarı girilirse istenen açarla değiştirilir
-    diskPrefix  : Yerel yığınağa kaydedilirken hangi öneke iye olacağı
-    fields      : kaynaktan gelen verilerin hangi açarlarının gerekli olduğu.
-    expire      : her bir nesnenin yerel yığınakta önbelleklenme süresi
-  */
-  Disklet:function(url,data,diskPrefix,fields,expire){
+  
+  Disklet(url, data, diskPrefix, fields, expire){
     if(url instanceof Object){
-      expire=fields||300;
-      fields=diskPrefix;
-      diskPrefix=data;
-      data=null;
-      let Src={_ready:-1,sum:function(keys){
-        let s=this;
-        return Object.keys(s).reduce(function(n,i){
-          if(i!='sum'&&i!='_ready'){
-            n[i]=keys.of(s[i]);
+      expire = fields || 300
+      fields = diskPrefix
+      diskPrefix = data
+      data = null
+      let Src = {_ready:-1, sum(keys){
+        let s = this
+        return Object.keys(s).reduce((n, i) => {
+          if(i != 'sum' && i != '_ready'){
+            n[i] = keys.of(s[i])
           }
-          return n;
-        },{});
-      }};
-      let ready=function(){
-        return new Promise(function(res,rej){
+          return n
+        }, {})
+      }}
+      let ready = function(){
+        return new Promise(function(res){
           if(O.Disk[diskPrefix]){
-            Src._ready=1;
-            O.combine(Src,O.Disk[diskPrefix]);
-            Src.sum=Src.sum.bind(Src);
-            res(Src);
-          }else if(Src._ready==-1){
+            Src._ready = 1
+            Object.assign(Src, O.Disk[diskPrefix])
+            Src.sum = Src.sum.bind(Src)
+            res(Src)
+          }else if(Src._ready == -1){
             O.req(url.static).then(function(data){
-              if(fields!='*'){
-                data=Object.keys(data).reduce(function(o,i){
-                  o[i]=fields.from(data[i]);
-                });
+              if(fields != '*'){
+                data = Object.keys(data).reduce((o, i)=>{
+                  o[i] = fields.from(data[i])
+                })
               }
-              Src._ready=1;
-              O.combine(Src,O.Disk[diskPrefix]);
-              Src.sum=Src.sum.bind(Src)
-              O.Disk.expire(diskPrefix,expire);
-              res(Src);
+              Src._ready = 1
+              Object.assign(Src, O.Disk[diskPrefix])
+              Src.sum = Src.sum.bind(Src)
+              O.Disk.expire(diskPrefix, expire)
+              res(Src)
             })
           }
-        });
+        })
       }
-      if(url.when=='init'){
-        ready();
+      if(url.when == 'init'){
+        ready()
       }
-      return new Proxy(Src,{
-        get:function(o,k){
-          return new Promise(function(res,rej){
-            if(o._ready==1){
-              res(o[k]);
+      return new Proxy(Src, {
+        get(o, k){
+          return new Promise(res=>{
+            if(o._ready == 1){
+              res(o[k])
             }else{
-              ready().then(function(Src){
-                o=Src;
-                res(o[k]);
+              ready().then(Src=>{
+                o = Src
+                res(o[k])
               })
             }
-          });
-          return o[k];
+          })
         }
-      });
+      })
     }else{
-      return new Proxy(O.Disk,{
-        get:function(o,k){
-          return new Promise(function(res,rej){
-            let key=(diskPrefix||'')+k;
+      return new Proxy(O.Disk, {
+        get(o, k){
+          return new Promise(res=>{
+            let key = (diskPrefix || '') + k
             if(o[key]){
-              res(o[key]);
+              res(o[key])
             }else{
-              if(data&&data.id){
-                data.id=k;
+              if(data && data.id){
+                data.id = k
               }
-              O.req(url.vars({id:k}),data).then(function(r){
-                res(o[key]=fields.of(r));
+              O.req(url.vars({id:k}), data).then(r=>{
+                res(o[key] = fields.of(r))
                 if(expire){
-                  O.Disk.expire(key,expire);
+                  O.Disk.expire(key, expire)
                 }
-              });
+              })
             }
-          });
+          })
         }
-      });
+      })
     }
   },
 
-  Socklet:function(Sock,channel,data){
-    let Ref={},Store=[];
-    Sock.on(channel,function(d){
-      Object.keys(d).forEach(function(i){
+  Socklet(Sock, channel, data){
+    let Ref = {}, Store = []
+    Sock.on(channel, d=>{
+      Object.keys(d).forEach(i=>{
         if(Ref[i]){
           while(Ref[i].length){
-            Ref[i].pop()(d[i]);
+            Ref[i].pop()(d[i])
           }
-          delete Ref[i];
+          delete Ref[i]
         }else{
-          Store.filter(function(s){
-            return s[0][s[1]]==i;
-          }).forEach(function(s){
-            s[0].val=d[i];  
-          });
+          Store.filter(s=>{
+            return s[0][s[1]] == i
+          }).forEach(s=>{
+            s[0].val = d[i]  
+          })
         }
-      });
-    });
+      })
+    })
+    //combine data if set
+    let cmb = data ? d => Object.assign(Object.create(data), d) : d=>d
     return new Proxy({
-      _conn:function(Elem,on){
-        Store.push([Elem,on]);
+      _conn(Elem, on){
+        Store.push([Elem, on])
       },
-      set:function(n){
-        Sock.emit(channel,O.combine(Object.create(data),{set:n}));
+      set(n){
+        Sock.emit(channel, cmb({set:n}))
       }
-    },{
-      get:function(o,k){
+    }, {
+      get(o, k){
         if(o[k]){
-          return o[k];
+          return o[k]
         }
-        return new Promise(function(res,rej){
+        return new Promise(res=>{
           if(!Ref[k]){
-            Ref[k]=[];
+            Ref[k] = []
           }
-          Ref[k].push(res);
-          Sock.emit(channel,O.combine(Object.create(data),{get:k}));
-        });
+          Ref[k].push(res)
+          Sock.emit(channel, cmb({get:k}))
+        })
       },
-      set:function(o,k,v){
-        o.set({[k]:v});
+      set(o, k, v){
+        o.set({[k]:v})
+      },
+      deleteProperty(o, k){
+        Sock.emit(channel, cmb({rem:k}))
       }
     })
   },
-  /*
-    let chain=O.Chain([f(),g(),h()]);
-    chain(ilkİşleveGirdiler).then(başarı).catch(başarısız);
-
-    f   : işlevler Dizisi
-    obj : this olacak Nesne
-
-    Birinin çıktısı bir sonrakinin girdisi olacak şekilde işlevleri sırayla çağırır. 
-    Zincir tamamlanınca çözülecek bir Söz döndürür.
-  */
-  Chain:function(f){
-    var obj = this||null;
-    return function(){
-      let args=arguments;
-      obj=this||obj;
-      return new Promise(function(res,rej){
-        var prom=f.shift().prom().apply(obj,args),i;
-        while(i=f.shift()){
-          prom=prom.then(i).catch(rej);
+  
+  Chain(f){
+    var obj = this || null
+    return ()=>{
+      let args = arguments
+      obj = this || obj
+      return new Promise((res, rej)=>{
+        var prom = f.shift().prom().apply(obj, args), i
+        while(i = f.shift()){
+          prom = prom.then(i).catch(rej)
         }
-        prom.then(res).catch(rej);
+        prom.then(res).catch(rej)
 
-      });
-    };
-  },
-  /*
-    O.resp.call({},{prop:f()})
-
-    prop    : Duyarlı özellik
-    f       : Atanırken çağrılacak işlev
-
-    Bir nesneye tanıma duyarlı özellik tanımlar.
-  */
-  resp:function(prop,f){
-    if(typeof prop=='string'){
-      prop={[prop]:f};
+      })
     }
-    let e=this||{};
-    Object.defineProperties(e,Object.keys(prop).reduce(function(s,p){
-      var fx=prop[p];let fOld=0;
+  },
+
+  resp(prop, f){
+    if(typeof prop == 'string'){
+      prop = {[prop]:f}
+    }
+    let e = this || {}
+    Object.defineProperties(e, Object.keys(prop).reduce(function(s, p){
+      var fx = prop[p];let fOld = 0
       // Bu özellikte daha önceden tanımlanmış bir duyar var mı
       if(e.__lookupGetter__(p)){
-        fOld=e.__lookupGetter__(p)(1);
-        if(typeof fOld=='function'){fOld=[fOld];}
+        fOld = e.__lookupGetter__(p)(1)
+        if(typeof fOld == 'function'){fOld = [fOld]}
         //Eski duyarla yeni duyarı birleştir.
-        fx=fOld.concat(fx);
+        fx = fOld.concat(fx)
       }else{
-        if(e[p]!=undefined){e['_'+p]=e[p];}
+        if(e[p] != undefined){e['_' + p] = e[p]}
       }
       if(!fOld){
-        s[p]={
-          get:function(f){
-            return f?fx:this['_'+p];
+        s[p] = {
+          get(f){
+            return f ? fx : this['_' + p]
           },
-          set:function(val){
-            if(val!=this[p]){
+          set(val){
+            if(val != this[p]){
               // Tek bir duyar mı var yoksa birden fazla mı duyar eklenmiş?
-              if(typeof fx=='function'){
-                fx.call(this,val)
+              if(typeof fx == 'function'){
+                fx.call(this, val)
               }else{
                 fx.forEach(function(i){
-                  i.call(this,val);
-                },this)
+                  i.call(this, val)
+                }, this)
               }
-              this['_'+p]=val;
+              this['_' + p] = val
               
             }
           }
-        };
-      }
-      return s;
-    },{}));
-    return e;
-  },
-  /*
-    O.stor.call({},{prop:storekey})
-    O.stor.call({},'prop','storekey')
-
-    prop    : Nesnede özellik adı
-    storekey: Yığınakta tutulacak değişkenin adı
-
-    Bir nesneye tanıma duyarlı özellik tanımlar.
-  */
-  stor:function(prop,storekey){
-    if(typeof prop=='string'){
-      prop={[prop]:storekey};
-    }
-    return Object.keys(prop).reduce(function(e,p){
-      var store=prop[p],v;
-      e=O.resp.call(e,p,function(val){
-        O.Disk[store]=val;
-      });
-      if((v=O.Disk[store])!=null){
-        e[p]=v;
-        e.__lookupSetter__(p).call(e,e[p],1);
-      }else if(e[p]!=undefined){
-        e.__lookupSetter__(p).call(e,e[p],1);
-      }
-      return e;
-    },this||{});
-  },
-  /*
-    O.ready.then(body=> )
-  
-    Belge yüklenince çözümlenecek bir Söz döndürür,
-  */
-  ready:new Promise(function(res,rej){
-    document.addEventListener('DOMContentLoaded',function(){
-      res(document.body);
-    });
-  }),
-  _selector:function(s){
-    var d= {
-      attr:/\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
-      class:/\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
-      id:/\#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
-      ui:/[\$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-      args:/\:(\w+)/g,
-      el:/^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
-    };
-    d=Object.keys(d).reduce(function(o,i){
-      var rm=[],e,x=-1,r=d[i];
-      while((e=r.exec(s))&&r.lastIndex!=x){
-        rm.push(e[0]);
-        x=r.lastIndex;
-        if(o[i] instanceof Object&&!(o[i] instanceof Array)){
-          o[i][e[1]]=e[2];
-        }else{
-          if(o[i]==null){
-            o[i]=e[1]||e[0];
-            s=s.replace(e[0],'');
-            break;
-          }
-          o[i].push(e[1]);
         }
       }
-      rm.forEach(function(i){
-        s=s.replace(i,'');
-      });
-      return o;
-    },{class:[],attr:{},id:null,ui:null,args:[],el:null});
+      return s
+    }, {}))
+    return e
+  },
+  
+  stor(prop, storekey){
+    if(typeof prop == 'string'){
+      prop = {[prop]:storekey}
+    }
+    return Object.keys(prop).reduce((e, p)=>{
+      var store = prop[p], v
+      e = O.resp.call(e, p, val=>{
+        O.Disk[store] = val
+      })
+      if((v = O.Disk[store]) != null){
+        e[p] = v
+        e.__lookupSetter__(p).call(e, e[p], 1)
+      }else if(e[p] != undefined){
+        e.__lookupSetter__(p).call(e, e[p], 1)
+      }
+      return e
+    }, this || {})
+  },
+  
+  ready:new Promise(res => {
+    document.addEventListener('DOMContentLoaded', () => res(document.body))
+  }),
+
+  _selector(s){
+    var d = {
+      attr:/\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
+      class:/\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
+      id:/#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
+      ui:/[$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
+      args:/:(\w+)/g,
+      el:/^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
+    }
+    d = Object.keys(d).reduce(function(o, i){
+      var rm = [], e, x = -1, r = d[i]
+      while((e = r.exec(s)) && r.lastIndex != x){
+        rm.push(e[0])
+        x = r.lastIndex
+        if(o[i] instanceof Object && !(o[i] instanceof Array)){
+          o[i][e[1]] = e[2]
+        }else{
+          if(o[i] == null){
+            o[i] = e[1] || e[0]
+            s = s.replace(e[0], '')
+            break
+          }
+          o[i].push(e[1])
+        }
+      }
+      rm.forEach(i=>{
+        s = s.replace(i, '')
+      })
+      return o
+    }, {class:[], attr:{}, id:null, ui:null, args:[], el:null})
 
     if(s.length){
-      d.class=d.class.concat(s.split(' '))
+      d.class = d.class.concat(s.split(' '))
     }
-    return d;
+    return d
   },
-  /*
-    ₺M:Model ve ₺Bileşen tanımlamak içindir.
-  */
-  define:function(cls,methods){
+  
+  define(cls, methods){
     if(!this[cls]){
-      this[cls]={};
+      this[cls] = {}
     }
-    Object.keys(methods).forEach(function(i){
-      this[cls][i]=methods[i];
-    },this);
+    Object.keys(methods).forEach(i=>{
+      this[cls][i] = methods[i]
+    })
   },
+
   _conf:{
     req:{ep:'/ep₺'},
   },
-  /*
-    O.Time.now       Şimdi (UNIX zamanı) sn cinsinden verir.
-    O.Time.yesterday Dünün ilk sn verir.
-
-  */
+  
   Time:new Proxy({
     yesterday:864e5,
-    today:0,now:0,
+    today:0, now:0,
     tomorrow:-864e5
-  },{get:function(a,b,c){
-    let t=new Date(+new Date-a[b]);
-    if(b!='now'){
-      t.setHours(0);
-      t.setMinutes(0);
-      t.setSeconds(0);
-    };return Math.floor(t.getTime()/1000)}}),
-  /*
-    O.Disk.açar = 'değer'
-    O.Disk.açar        // 'değer'
-    delete O.Disk.açar
-
-    Yerel Yığınağa bilgi yazmak/okumak/silmek için kullanılır.
-  */
-  Disk:typeof Storage!="undefined"?new Proxy({available:true,expire:function(key,time){
-      O.Disk[key+':expire']=O.Time.now+Number(time);
-    },rem:function(k){
-      if(typeof k=='string'){k=[k];}
-      k.forEach(function(i){
-        localStorage.removeItem(i);
-      });
+  }, {get(a, b){
+    let t = new Date(+new Date - a[b])
+    if(b != 'now'){
+      t.setHours(0)
+      t.setMinutes(0)
+      t.setSeconds(0)
+    }return Math.floor(t.getTime() / 1000)}}),
+  
+  Disk:new Proxy({
+    expire(key, time){
+      O.Disk[key + ':expire'] = O.Time.now + Number(time)
+    },
+    rem(k){
+      if(typeof k == 'string'){k = [k]}
+      k.forEach(i=>localStorage.removeItem(i))
     }
-  },{
-    get:function(o,k){
-      if(o[k]){return o[k];}
-      let e;
-      if(e=localStorage.getItem(k+':expire')){
-        if(Number(e)<O.Time.now){
-          delete O.Disk[k];
-          return null;
+  }, {
+    get(o, k){
+      if(o[k]){return o[k]}
+      let e = localStorage.getItem(k + ':expire')
+      if(e){
+        if(Number(e) < O.Time.now){
+          delete O.Disk[k]
+          return null
         }
       }
-      k=localStorage.getItem(k);
+      k = localStorage.getItem(k)
       try{
-        return JSON.parse(k);
+        return JSON.parse(k)
       }
       catch(Exception){
-        return k;
+        return k
       }
     }
-    ,set:function(o,k,v){
-      localStorage.setItem(k,JSON.stringify(v));
-      return true;
+    , set(o, k, v){
+      localStorage.setItem(k, JSON.stringify(v))
+      return true
     }
 
-    ,deleteProperty:function(o,k){
-      return delete localStorage[k];
+    , deleteProperty(o, k){
+      return delete localStorage[k]
     }
-    ,has:function(o,k){
-      return localStorage[k]?true:false;
+    , has(o, k){
+      return localStorage[k] ? true : false
     }
-  }):{available:false},
-  /*
-    O.combine({},{},..)
-    Nesneleri birleştirir.
-  */
-  combine:function(){
-    let args=O.toArray(arguments),o=args.shift();
-    if(!(o instanceof Object)){o=o.init();}
-    return args.reduce(function(o,i){
-      return Object.keys(i).reduce(function(o,p){
-        o[p]=i[p];
-        return o;
-      },o);
-    },o);
-  },
-  /*
-    Ertelenmiş Kütüphane
-    Yazarlar: @Noras, @alpr
-  */
-  Sock:function(opts){
-    opts=O.combine({
+  }),
+  
+  Sock(opts){
+    opts = Object.assign({
       url:null,       // websocket host
       q:{},          // query object
       interval:3000 // yeniden bağlanma 3s
-    },typeof opts =='string'?{url:opts}:(opts||{}));
-    opts.q=O.combine(opts.q,{_osid:O._uid(16)});
-    opts.url=opts.url||window.location.origin; // başarımı artırmak için öntanımlı opts nesnesinde değil
+    }, typeof opts == 'string' ? {url:opts} : (opts || {}))
 
-    let r;
-    if(r=/((ws|http)s?):\/\//g.exec(opts.url)){
-      r=r[1];
-      if(r.substr(0,4)=='http'){
-        opts.url=(r.length>4?'wss://':'ws://')+opts.url.split('://')[1]
+    opts.q = Object.assign(opts.q, opts.socketio ? {
+
+      transport:'polling',
+      EIO:3
+    } : {_osid:O._uid(16)})
+
+
+    opts.url = opts.url || window.location.origin // başarımı artırmak için öntanımlı opts nesnesinde değil
+    if(opts.socketio){opts.url += 'socket.io/'}
+    let r = /((ws|http)s?):\/\//g.exec(opts.url)
+    if(r){
+      r = r[1]
+      if(r.substr(0, 4) == 'http'){
+        opts.url = (r.length > 4 ? 'wss://' : 'ws://') + opts.url.split('://')[1]
       }
     }else{
-      opts.url='wss://'+opts.url;
+      opts.url = 'wss://' + opts.url
     }
-    opts.url+='?'+O._queryString(opts.q);
-    let on={},socket,connectInterval,interval,conn;
-    conn={
-      on:function(topic,f){
+    opts.url += '?' + O._queryString(opts.q)
+    let on = {}, socket, interval, conn
+    conn = {
+      on(topic, f){
         if(topic instanceof Object){
-          Object.keys(topic).forEach(function(t){
-            on[t]=topic[t];
+          Object.keys(topic).forEach(t=>{
+            on[t] = topic[t]
           })
         }else{
-          on[topic]=f;
+          on[topic] = f
         }
-        return this;
+        return this
       },
-      connect:function(){
+      connect(){
         if(!this.connected){
-          socket=new WebSocket(opts.url+'&_tstamp='+O.Time.now);
-          socket.onopen=function(e){
-            interval.stop();
+          socket = new WebSocket(opts.url + '&_tstamp=' + O.Time.now)
+          socket.onopen = function(e){
+            interval.stop()
+            this.connected = 1
             if(on.open){
-              on.open(e.data);
+              on.open(e.data)
             }
           }
-          this.connected=1;
-          socket.lib=this;
-          socket.onmessage=function(e){
-            e=e.data;
-            let offset=e.indexOf(','),topic=e.substr(0,offset);
+          
+          socket.lib = this
+          socket.onmessage = function(e){
+            e = e.data
+            let offset = e.indexOf(','), topic = e.substr(0, offset)
             if(on[topic]){
-              on[topic](JSON.parse(e.substring(offset+1)),this);
+              on[topic](JSON.parse(e.substring(offset + 1)), this)
             }
           }
-          socket.onerror=socket.onclose=function(e){
-            if(e.type=='error'&&on.error){
-              on.error(e);
+          socket.onerror = socket.onclose = function(e){
+            if(e.type == 'error' && on.error){
+              on.error(e)
             }
-            this.lib.connected=0;
-            interval.start();
+            console.log('error', e)
+            this.lib.connected = 0
+            interval.start()
           }
         }
-        return this;
+        return this
       },
-      emit:function(topic,message){
-        socket.send(topic+','+JSON.stringify(message));
-      }
-    };
-    interval=O.interval(conn.connect,opts.interval).start();
-    return conn.connect();
-
-  },
-  /*
-    O.req('veritabanı',{kimlik:''}).then(f(cevap))
-    ep:     uçnokta,    YAZI
-    data:   veri,       NESNE
-
-    AJAX isteği yapar; data boş ise GET, dolu ise POST isteği yapar.
-    Söz döndürür.
-  */
-  req:function(ep,data,upload){
-    var XHR=new XMLHttpRequest();
-    
-    //backend+endpoint
-    XHR.open(data?'POST':"GET",ep.indexOf('/')>-1?ep:(O._conf.req.ep.vars({ep:ep})),true);
-    XHR.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    return new Promise(function(res,rej){
-      XHR.onreadystatechange=function(){
-        if(this.readyState==4){
-          if(this.status==200){
-            if(this.response!=''){
-              var r;
-              try{
-                r=JSON.parse(this.response);
-              }catch(e){
-                r=this.response;
-              }
-              res(r);
-            }else{rej({error:'empty response'});}
-          }else{
-            rej({error:{code:this.status}});
-          }
-        }
-      };
-      XHR.send(data?O._queryString(data):'');
-    });     
-  },
-  _queryString:function(obj){
-    let pr=arguments[1];
-    var str = [];
-    for(var p in obj) {
-      if (obj.hasOwnProperty(p)) {
-        var k = pr ? pr + "[" + p + "]" : p, v = obj[p];
-        str.push(typeof v == "object" ?O._queryString(v, k) :encodeURIComponent(k) + "=" + encodeURIComponent(v));
+      emit(topic, message){
+        socket.send(topic + ',' + JSON.stringify(message))
       }
     }
-    return str.join("&");
+    interval = O.interval(conn.connect, opts.interval).start()
+    return conn.connect()
   },
-  _uid:function(len){
-    len=len||6;
-    let str='',rnd;
+
+  req(ep, data){
+    var XHR = new XMLHttpRequest()
+    
+    //backend+endpoint
+    XHR.open(data ? 'POST' : 'GET', ep.indexOf('/') > -1 ? ep : (O._conf.req.ep.vars({ep:ep})), true)
+    XHR.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+    return new Promise(function(res, rej){
+      XHR.onreadystatechange = function(){
+        if(this.readyState == 4){
+          if(this.status == 200){
+            if(this.response != ''){
+              var r
+              try{
+                r = JSON.parse(this.response)
+              }catch(e){
+                r = this.response
+              }
+              res(r)
+            }else{rej({error:'empty response'})}
+          }else{
+            rej({error:{code:this.status}})
+          }
+        }
+      }
+      XHR.send(data ? O._queryString(data) : '')
+    })     
+  },
+
+  _queryString(obj){
+    let pr = arguments[1]
+    var str = []
+    for(var p in obj) {
+      if (obj.hasOwnProperty(p)) {
+        var k = pr ? pr + '[' + p + ']' : p, v = obj[p]
+        str.push(typeof v == 'object' ? O._queryString(v, k) : encodeURIComponent(k) + '=' + encodeURIComponent(v))
+      }
+    }
+    return str.join('&')
+  },
+
+  _uid(len){
+    len = len || 6
+    let str = '', rnd
     while(len--){
       //A-Z 65-90
       //a-z 97-122
-      rnd=Math.floor((Math.random(1e10)*1e5)%52);
-      str+=String.fromCharCode(rnd+(rnd<26?65:71));
+      rnd = Math.floor((Math.random(1e10) * 1e5) % 52)
+      str += String.fromCharCode(rnd + (rnd < 26 ? 65 : 71))
     }
-    return str;
+    return str
   },
-  /*
-    Uluslararasılaştırma(U18A) Betliği
-    // ! Kararsız, değişiklikler oluşabilir
-  */
-  i18n:function(opts){
-    opts=O.combine({
+
+  i18n(opts){
+    opts = Object.assign({
       langs:{tr:'Türkçe'},
       map:null,
       rtl:['ar', 'fa'],
-      div:'select'.prop({onchange:function(){this.dil=this.value;}}),
-      model:function(i){
-        return 'option'.attr('value',i).set(this[i]);
+      div:'select'.prop({onchange(){this.dil = this.value}}),
+      model(i){
+        return 'option'.attr('value', i).set(this[i])
       },
       ranges:[1],
       scope:''
-    },opts); //Ön tanımlı seçenekler
-    var def=O.Disk._lang||opts.lang||navigator.language.substr(0,2).toLowerCase();
+    }, opts) //Ön tanımlı seçenekler
+    var def = O.Disk._lang || opts.lang || navigator.language.substr(0, 2).toLowerCase()
     if(!opts[def]){
-      def=Object.keys(opts.langs)[0];
+      def = Object.keys(opts.langs)[0]
     }
-    var l,t;
-    if((l=O.Disk._lTime)&&(t='otag[i18n]'.get()).length){
-      t=t[0].attr('i18n'),
-      t=t.indexOf(',')==-1?Number(t):t.split(',').map(Number);
-      var rem=[];
-      opts.ranges.forEach(function(i,j){
-        if((typeof l=='number'?l:l[j])<(typeof t=='number'?t:t[j])){
-          rem=rem.concat(Object.keys(opts.langs).map(function(l){return '_l'+l+(j||'')+(opts.scope||'')}));
+    var l, t
+    if((l = O.Disk._lTime) && (t = 'otag[i18n]'.get()).length){
+      t = t[0].attr('i18n'),
+      t = t.indexOf(',') == -1 ? Number(t) : t.split(',').map(Number)
+      var rem = []
+      opts.ranges.forEach((i, j)=>{
+        if((typeof l == 'number' ? l : l[j]) < (typeof t == 'number' ? t : t[j])){
+          rem = rem.concat(Object.keys(opts.langs).map(l=> '_l' + l + (j || '') + (opts.scope || '')))
         }
-      });
-      O.Disk.rem(rem);
-      console.log(rem);
-    }
-    opts.model=opts.model.bind(opts.langs);
-    return O.i18n=opts.div
-    .has(
-      Object.keys(opts.langs).reduce(function(s,i){
-        s[i]=opts.model(i);
-        return s;
-      },{}))
-    .prop({
-      _:opts,
-      onchange:function(){
-        this.dil=this.value;
-      },
-      get:function(phrase){
-        let e=this;
-        return new Promise(function(res,rej){
-          e.ready.then(function(){
-            var phr=Math.floor(phrase);
-            phrase=Math.round(phrase%1*10);
-            if(e._.phr[phr]){
-              res(e._.phr[phr].split('=')[phrase]);
-            }else{
-              rej();
-            }
-  
-          });
-        });
-      },
-      refresh:function(){
-        ('[phrase]').get().map(O.F.each('Lang'));
-      },
-      ready:new Promise(function(res,rej){
-  
-        let i=setInterval(function(){
-          let c=O.i18n._;
-          if(c.r?(c.r==c.ranges.length):c.phr&&Object.keys(c.phr).length){
-            clearInterval(i);
-            res(1);
-            O.i18n.dil=c.lang;
-          }
-        },100);
       })
-    }).resp({
-    dil:function(dil){
-      this.View[dil].selected=true;
-      O.Disk._lang=dil;
-      O.ready.then(b=>b.Class('rtl',O.i18n._.rtl.indexOf(O.Disk._lang)==-1));
-      let e=this,c=e._,set=function(res){
-        c.lang=dil;
-        O.Disk['_l'+c.lang+(this[1]||'')+e._.scope]=res;
-        res=res.split('\n');
-        if(e._.map){res=res.map(e._.map);}
-        res.forEach(function(i,j){
-          c.phr[j+this]=i;
-        },this[0]||1);
-        if(this[2]=='net'){
-          var t=O.Disk._lTime||Array.from({length:c.ranges.length}).map(function(){return 0});
-          t[this[1]]=O.Time.now;
-          O.Disk._lTime=t;
-        }
-        c.r++;
-        e.refresh();
-      };
-      e.refresh();
-      c.phr=null;
-      if(c.path){
-        var res;
-        c.phr={};
-        (c.ranges||[1]).forEach(function(i,j){
-          if(res=O.Disk['_l'+dil+(j||'')+e._.scope]){
-            set.call([i,j],res);
-          }else{
-            O.req(this.vars({lang:dil,part:j,scope:e._.scope})).then(set.bind([i,j,'net']));
+      O.Disk.rem(rem)
+      console.log(rem)
+    }
+    opts.model = opts.model.bind(opts.langs)
+    return O.i18n = opts.div
+      .has(
+        Object.keys(opts.langs).reduce((s, i)=>{
+          s[i] = opts.model(i)
+          return s
+        }, {}))
+      .prop({
+        _:opts,
+        onchange(){
+          this.dil = this.value
+        },
+        get(phrase){
+          let e = this
+          return new Promise((res, rej)=>{
+            e.ready.then(()=>{
+              var phr = Math.floor(phrase)
+              phrase = Math.round(phrase % 1 * 10)
+              if(e._.phr[phr]){
+                res(e._.phr[phr].split('=')[phrase])
+              }else{
+                rej()
+              }
+  
+            })
+          })
+        },
+        refresh(){
+          ('[phrase]').get().map(O.F.each('Lang'))
+        },
+        ready:new Promise(res=>{
+  
+          let i = setInterval(()=>{
+            let c = O.i18n._
+            if(c.r ? (c.r == c.ranges.length) : c.phr && Object.keys(c.phr).length){
+              clearInterval(i)
+              res(1)
+              O.i18n.dil = c.lang
+            }
+          }, 100)
+        })
+      }).resp({
+        dil(dil){
+          this.View[dil].selected = true
+          O.Disk._lang = dil
+          O.ready.then(b=>b.Class('rtl', O.i18n._.rtl.indexOf(O.Disk._lang) == -1))
+          let e = this, c = e._, set = function(res){
+            c.lang = dil
+            O.Disk['_l' + c.lang + (this[1] || '') + e._.scope] = res
+            res = res.split('\n')
+            if(e._.map){res = res.map(e._.map)}
+            res.forEach(function(i, j){
+              c.phr[j + this] = i
+            }, this[0] || 1)
+            if(this[2] == 'net'){
+              var t = O.Disk._lTime || Array.from({length:c.ranges.length}).map(()=>0)
+              t[this[1]] = O.Time.now
+              O.Disk._lTime = t
+            }
+            c.r++
+            e.refresh()
           }
+          e.refresh()
+          c.phr = null
+          if(c.path){
+            var res
+            c.phr = {};
+            (c.ranges || [1]).forEach(function(i, j){
+              if(res = O.Disk['_l' + dil + (j || '') + e._.scope]){
+                set.call([i, j], res)
+              }else{
+                O.req(this.vars({lang:dil, part:j, scope:e._.scope})).then(set.bind([i, j, 'net']))
+              }
           
-        },c.path);
-      }else{
-        c.lang=dil;
-      }
-      //this.View[this.dil].selected=false;
+            }, c.path)
+          }else{
+            c.lang = dil
+          }
+          //this.View[this.dil].selected=false;
       
-    }}).prop({dil:def});
-  }, 
-  /*
-    Nesne={a:1,b:2,_:'b,a'};
-    Nesne={a:1,b:2,_:['b','a']};
-    O.toArray(Nesne); // [2,1]
-
-    Nesneleri Diziye Dönüştürür
-  */
-  toArray:function(obj){
-    return (obj._?((typeof obj._ =='string')?obj._.split(','):obj._):Object.keys(obj)).map(function(i){return obj[i];});
+        }}).prop({dil:def})
   },
+
+  toArray(obj){
+    return (obj._ ? ((typeof obj._ == 'string') ? obj._.split(',') : obj._) : Object.keys(obj)).map(function(i){return obj[i]})
+  },
+
   proto:{
     Element:{
-      /*
-        A=''.has({a:''.has({b:''})})
-        A.V('a:')   // {a:''.has({b:'B'})}   //Nesne Bağ Haritası
-        A.V('a:b')  //<div class="B"></div>  //Öge
-
-        Ögenin alt Ögelerini getirir, (verilen yolda) 
-      */
-      V:function(path){
-        return (path||'').split(':').reduce(function(s,i){
-          return s?(i==''?s.View:(s.View[i]?s.View[i]:null)):null;
-        },this)
+      V(path){
+        return (path || '').split(':')
+          .reduce((s, i)=>s ? (i == '' ? s.View : (s.View[i] ? s.View[i] : null)) : null, this)
       },
-      p:function(top){
-        var s=this;
+      p(top){
+        var s = this
         while(top--){
-          s=s.parent;
+          s = s.parent
         }
-        return s;
+        return s
       },
-      // tanıma duyarlı özellik tanımlar
-      resp:function(prop,f){
-        return O.resp.call(this,prop,f);
+      resp(prop, f){
+        return O.resp.call(this, prop, f)
       },
-      // barındırılan özellik tanımlar
-      stor:function(prop,key){
-        return O.stor.call(this,prop,key);
+      stor(prop, key){
+        return O.stor.call(this, prop, key)
       },
-      /*
-        String.prototype.extends incele
-      */
-      extend:function(component,args){
+      extend(component, args){
         if(O.UI[component]){
-          return O.UI[component].apply(this,args||[]);
+          return O.UI[component].apply(this, args || [])
         }else{
-          console.warn('₺'+component,'is not defined');
-          return this;
+          console.warn('₺' + component, 'is not defined')
+          return this
         }
       },
-      /*
-        after kadar bekle-> .destroy sınıfı ekle-> dur kadar bekle-> belgeden kaldır.
-        .destroy için bir CSS tanımlayınız, transition-duration değeri dur girdisi ile aynı olsun.
-        .destroy{
-          transition: .2s linear; // Geçiş 200ms
-        }
-        Öge.destroy(0,200)          // hemen yoketmeye başla 200ms sonra belgeden kaldır
-
-        Öge'yi yavaşça siler
-      */
-      destroy:function(after,dur){
-        let s=this;
-        return new Promise(function(res){
+      destroy(after, dur){
+        let s = this
+        return new Promise(res=>{
           
-          setTimeout(function(){
-            setTimeout(function(){s.remove();res();},dur||300);
-            s.Class('destroy');
-          },after||0);
-        });
+          setTimeout(()=>{
+            setTimeout(()=>{s.remove();res()}, dur || 300)
+            s.Class('destroy')
+          }, after||0)
+        })
       },
-      /*
-        ---- Tanımlama
-        f    : İşlev||Yazı // Çağrılacak işlev ya da öge yöntemi
-        t    : Sayı        // zaman aralığı
-        args : Dizi        // işleve verilecek girdiler
-        start: Mantıksal   // başlatılsın mı
-        
-        ---- Yönetim
-        f    : ('start'||1) veya ('stop'||0)    // Yapılacak İşlem
-
-        Öge'ye bağlamın korunduğu bir zaman aralıklı işlev tanımlar
-      */
-      interval:function(f,t,args,start){
+      interval(f, t, args, start){
         if(this._interval){
-          if(typeof f=='string'){
-            this._interval[f]();
+          if(typeof f == 'string'){
+            this._interval[f]()
           }else
           if(isFinite(f)){
-            this._interval[Number(f)>0?'start':'stop']();
+            this._interval[Number(f) > 0 ? 'start' : 'stop']()
           }
         }else{
-          if(typeof f=='string'){
-            f=this[f];
+          if(typeof f == 'string'){
+            f = this[f]
           }
-          this._interval=O.interval.apply(null,[f.bind(this),t].concat(args));
+          this._interval = O.interval.apply(null, [f.bind(this), t].concat(args))
           if(start){
-            this._interval.start();
-            f.apply(this,args);
+            this._interval.start()
+            f.apply(this, args)
           }
         }
-        return this;
+        return this
       },
-      /*
-        Öge='Öge'.disp( );      // Gizle
-           Öge .disp(0);      // Gizle
-           Öge .disp(1);      // Göster
-           Öge .disp(1==1);   // Göster
-     
-        Öge'yi gösterir/gizler
-      */
-      disp:function(bool){
-        if(!bool&&!this.hasOwnProperty("dispState")){
-          this.dispState=this.style.display;
+      disp(bool){
+        if(!bool && !this.hasOwnProperty('dispState')){
+          this.dispState = this.style.display
         }
-        this.style.display=bool?this.dispState:"none";
-        return this;
+        this.style.display = bool ? this.dispState : 'none'
+        return this
       },
-      /*
-        Öge='Öge'.has({a:1});
-        Öge.a                    // 1
-
-        Öge'ye özellik tanımlar
-      */
-      prop:function(k,val,attr){
-        var e;
-        if(val==null&&!(k instanceof Object)||(k instanceof Array)){
+      prop(k, val, attr){
+        var e
+        if(val == null && !(k instanceof Object) || (k instanceof Array)){
           if(k instanceof Array){
-            e={};
-            k.map(function(i){
-              e[i]=attr?this.getAttribute(i):this[i];
-            },this);
+            e = {}
+            k.forEach(i=>{
+              e[i] = attr ? this.getAttribute(i) : this[i]
+            }, this)
           }else{
-            e=attr?this.getAttribute(k):this[k];
+            e = attr ? this.getAttribute(k) : this[k]
           }
         }else{
-          e=this;
+          e = this
           if(attr){
             
             if(!(k instanceof Object)){
-              k={[k]:val};
+              k = {[k]:val}
             }
-            Object.keys(k).forEach(function(i){
-              e.setAttribute(i,k[i]);
-            });
+            Object.keys(k).forEach(i=>{
+              e.setAttribute(i, k[i])
+            })
           }else{
             if(k instanceof Object){
               Object.keys(k).forEach(function(i){
-                if(typeof(k[i])=='function'){k[i]=k[i].bind(e);}
-              });
-              O.combine(this,k);
+                if(typeof(k[i]) == 'function'){k[i] = k[i].bind(e)}
+              })
+              Object.assign(this, k)
             }else{
-              this[k]=val;
+              this[k] = val
             }
           }
         }
-        return e;
+        return e
       },
-      /*
-        Öge='Öge'.Class(['a','b']); // a,b ekle
-           Öge .Class('c');       // c ekle
-           Öge .Class('b',1);     // b kaldır
-        <div class="Öge a c"></div>
-
-        Öge'ye Sınıf ekler/kaldırır
-      */
-      Class:function(c,r){
+      class(c){
+        if(typeof c == 'function'){
+          this.class(c())
+        }else{
+          let list = {add: [], rem: []}
+          Object.keys(c).forEach(f=>{
+            list[(typeof c[f] === 'function' ? c[f]() : c[f]) ? 'add' : 'rem'].push(f)
+          })
+          this.Class(list.rem, 1).Class(list.add)
+        }
+        return this
+      },
+      Class(c, r){
         if(!(c instanceof Array)){
-          c=[c];
+          c = [c]
         }
-        if(c[0]&&c[0]!=''){
-          this.className=c.reduce(function(a,b){
-            a=a.replace(new RegExp("(\\b"+b+")+"),"");
-            return (r?a:(a+" "+b)).replace(/\s{2}/g," ").trim();
-          },this.className);
+        if(c[0] && c[0] != ''){
+          this.className = c.reduce((a, b)=>{
+            a = a.replace(new RegExp('(\\b' + b + ')+'), '')
+            return (r ? a : (a + ' ' + b)).replace(/\s{2}/g, ' ').trim()
+          }, this.className)
         }
-        return this;
+        return this
       },
-      // Kullanıcı arayüzü şablonu oluşturur
-      layout:function(lay,master){
-        let s=master||this;
-        this.innerHTML='';
+      layout(lay, master){
+        let s = master || this
+        this.innerHTML = ''
         return this.append(
-          lay.map(function(i){
+          lay.map(i=>{
             if(i instanceof Element){
-              return i;
+              return i
             }else if(i instanceof Array){
-              return i[0].layout(i[1],s);
+              return i[0].layout(i[1], s)
             }else{
-              return s.V(i)||i.init();
+              return s.V(i) || i.init()
             }
           })
-        );
+        )
       },
-      /*
-        Ata yöntemi çağırır
-        .has ile çalışır
-        'Ata'.prop({
-          okAt:f(yayTürü)
-        }).has({
-          Çocuk:'Çocuk'.do('okAt','click',['uzunYay'])
+      do(method, on, args){
+        if(arguments[3]){args = O.toArray(arguments).splice(2)}
+        return this.prop('on' + (on || 'click'), function(){
+          this.parent[method].apply(this.parent, args || [])
         })
-      */
-      do:function(method,on,args){
-        if(arguments[3]){args=O.toArray(arguments).splice(2);}
-        return this.prop('on'+(on||'click'),function(){
-          this.parent[method].apply(this.parent,args||[]);
-        });
       },
-      /*
-        a='a'.init(),b='b'.init();
-        Öge='Öge'.append([a,b]);    // a,b ekle
-        <div class="Öge"><a></a><b></b></div>
-
-        Öge='Öge'.append([a,b],1);  // a,b ekle, ama tersten
-        <div class="Öge"><b></b><a></a></div>       
-    
-
-        Öge'ye alt Öge ekler
-      */
-      append:function(e,rev,delay){
+      append(e, rev){
         if(e){
           if(!(e instanceof Array)){
-            e=[e];
+            e = [e]
           }else if(e[0] instanceof Array){
-            e=e.map(function(i){
-              return 'd'.append(i);
-            });
+            e = e.map(i=>'d'.append(i))
           }
           if(rev){
-            e=e.reverse();
+            e = e.reverse()
           }
-          e.forEach(function(i){
-            if(!(i instanceof Node)){i=i.init();}
-            this.appendChild(i);
-          },this);
+          e.forEach(i=>{
+            if(!(i instanceof Node)){i = i.init()}
+            this.appendChild(i)
+          })
         }
-        return this;
+        return this
       },
-      /*
-        
-        Öge='Öge'.has({a:'a',b:'b'});
-        Öge.View.a              //<a></a>
-        Öge.View.a.parent       //<div class="Öge">..
-
-        <div class="Öge"><a></a><b></b></div>
-    
-
-        Öge'ye alt öge ekler, arasını bağlar
-      */
-      has:function(e,before){
+      has(e, before){
         if(e){
-        if(!this.View){this.View={};}
-        if(e instanceof Array && !(e[0] instanceof Element)){
-          var a=[];
-          for(var i in e){
-            a.push("d".has(e[i]));
-            e[i].parent=this;
-            O.combine(this.View,e[i]);
-          }
-          e=a;
-        }
-        if(typeof e!='object'||e instanceof Element){
-          e=[e];
-        }
-        if(e instanceof Object){
-          var arr=[];
-          //add sort function feature
-          e=(e._?(typeof e._ =='function'?Object.keys(e).filter(function(i){
-            return e[i] instanceof Element;
-          }).sort(e._):e._):Object.keys(e)).map(function(i){
-            if(typeof e[i] =='function'){
-              e[i]=e[i]();
+          if(!this.View){this.View = {}}
+          if(e instanceof Array && !(e[0] instanceof Element)){
+            var a = []
+            for(var i in e){
+              a.push('d'.has(e[i]))
+              e[i].parent = this
+              Object.assign(this.View, e[i])
             }
-            return (this.View[i]=e[i].prop({parent:this}));
-          },this);
-        }}
-        return this.append(e,before);
+            e = a
+          }
+          if(typeof e != 'object' || e instanceof Element){
+            e = [e]
+          }
+          if(e instanceof Object){
+            //add sort function feature
+            e = (e._ ? (typeof e._ == 'function' ? Object.keys(e).filter(i=>{
+              return e[i] instanceof Element
+            }).sort(e._) : e._) : Object.keys(e)).map(i=>{
+              if(typeof e[i] == 'function'){
+                e[i] = e[i]()
+              }
+              return (this.View[i] = e[i].prop({parent:this}))
+            })
+          }}
+        return this.append(e, before)
       },
-      html:function(e){
-        this.innerHTML="";
-        return e?this.has.apply(this,arguments):this;
+      html(e){
+        this.innerHTML = ''
+        return e ? this.has.apply(this, arguments) : this
       },
-      /*
-        .___________________.
-        | 1| Esenlikler ad₺ |
-        | 2|                |
-        |___________________|
+      Lang(i, phr){
+        i = i || this.attr('phrase') || this.prop('phrase')
+        let s = this
 
-        Öge='Öge'.Lang(1,{ad:'Yertinç'});
-
-        <div class="Öge"></div>
-
-        Dil yüklendiğinde
-        <div class="Öge">Esenlikler Yertinç</div>
-    
-
-        Öge'nin dil deyiş sayısını değiştirir.
-      */
-      Lang:function(i,phr){
-        i=i||this.attr('phrase')||this.prop('phrase');
-        let s=this;
-
-        s.attr('phrase',i);
+        s.attr('phrase', i)
         if(phr){
-          s.prop('phr'+(typeof phr =='function'?'Select':''),phr);
+          s.prop('phr' + (typeof phr == 'function' ? 'Select' : ''), phr)
         }
-        if(this.phr&&this.phrSelect){
-          i=Number(i)+this.phrSelect(this.phr)/10;
+        if(this.phr && this.phrSelect){
+          i = Number(i) + this.phrSelect(this.phr) / 10
         }
-        let type=this.attr('t')||this.t
+        let type = this.attr('t') || this.t
         O.i18n.get(i).then(function(p){
 
           if(s.phr){
             if(!(s.phr instanceof Object)){
-              s.phr=[s.phr]
+              s.phr = [s.phr]
             }
-            p=p.vars(s.phr);
+            p = p.vars(s.phr)
           }
           if(s.ttl){
-            s.title=p;
+            s.title = p
           }
-          if(['title','placeholder'].indexOf(type)>-1){
-            s.attr(type,p);
+          if(['title', 'placeholder'].indexOf(type) > -1){
+            s.attr(type, p)
           }else{
-            s.innerHTML=p;
+            s.innerHTML = p
           }
-        });
-        return s;
+        })
+        return s
       },
-      setSafe:function(t,phr){
-        let rep=function(str){
-          if(typeof str =='string'){
-            str=str.replaceAll(
+      setSafe(t, phr){
+        let rep = str => {
+          if(typeof str == 'string'){
+            str = str.replaceAll(
               [/&/g,
-              /</g,
-              />/g,
-              /"/g,
-              /'/g],
-              ["&amp;",
-              "&lt;",
-              "&gt;",
-              "&quot;",
-              "&#039;"]
+                /</g,
+                />/g,
+                /"/g,
+                /'/g],
+              ['&amp;',
+                '&lt;',
+                '&gt;',
+                '&quot;',
+                '&#039;']
             )
           }
-          return str;
+          return str
         }
-        return this.set(rep(t),rep(phr));
+        return this.set(rep(t), rep(phr))
       },
-      /*
-        Öge='Öge'.set('Esenlikler ad₺!',{ad:'Yertinç'});
-        <div class="Öge">>Esenlikler Yertinç!</div>
-
-        Öge.set({ad:'Otağ'});
-        Öge.val                 // {ad:'Otağ'});
-        <div class="Öge">Esenlikler Otağ!</div>
-    
-        Öge'nin içine yazı yazar
-      */
-      set:function(t,phr){
-        if(t&&!phr){
-          let phrase;
-          if(phrase=this.attr('phrase')){
+      set(t, phr){
+        if(t && !phr){
+          let phrase
+          if(phrase = this.attr('phrase')){
             if(!(t instanceof Object)){
-              t=[t];
+              t = [t]
             }
-            this.phr=t;
+            this.phr = t
             //console.log(1);
-            this.Lang(phrase,t);
+            this.Lang(phrase, t)
           }else if(t instanceof Object){
-            if(!this.main){this.main=this.innerHTML;}
+            if(!this.main){this.main = this.innerHTML}
             if(t._){
-              this.innerHTML="";
-              this.append(this.main.varsX(this.data=t));
+              this.innerHTML = ''
+              this.append(this.main.varsX(this.data = t))
             }else{
-              this.innerHTML=this.main.vars(this.data=t).replace(/\n/gm,'<br>');
+              this.innerHTML = this.main.vars(this.data = t).replace(/\n/gm, '<br>')
             }
           }else{
-            this.innerHTML=String(t).replace(/\n/gm,'<br>');
+            this.innerHTML = String(t).replace(/\n/gm, '<br>')
           }
         }else if(t){
           if(isFinite(t)){
-            this.Lang(t,phr==1?null:phr);
+            this.Lang(t, phr == 1 ? null : phr)
           }else{
-            this.main=t;
+            this.main = t
             if(phr._){
-              this.innerHTML="";
-              this.append(this.main.varsX(this.data=phr));
+              this.innerHTML = ''
+              this.append(this.main.varsX(this.data = phr))
             }else{
-              this.innerHTML=this.main.vars(this.data=phr).replace(/\n/gm,'<br>');
+              this.innerHTML = this.main.vars(this.data = phr).replace(/\n/gm, '<br>')
             }
           }
         }else{
-          this.innerHTML='';
+          this.innerHTML = ''
         }
-        return this.Class('def',1);
+        return this.Class('def', 1)
       },
-      /*
-
-        Öge='Öge'.has({a:'a',b:'b'});
-        Öge.setView({a:'Esenlikler',b:'Yertinç'})
-
-        <div class="Öge"><a>Esenlikler</a><b>Yertinç</b></div>
-    
-
-        Öge'nin alt ögelerine değer verir.
-      */
-      setView:function(d){
-        let v=this.View;
-        //this.data=O.combine(this.data||{},d);
-        if(this.ondata){this.ondata(d);}
-        (d._||Object.keys(d)).forEach(function(i){
+      setView(d){
+        let v = this.View
+        //this.data=Object.assign(this.data||{},d);
+        if(this.ondata){this.ondata(d)}
+        (d._ || Object.keys(d)).forEach(i=>{
           if(v.hasOwnProperty(i)){
-            v[i].set(d[i]);
+            v[i].set(d[i])
           }
-        });
-        return this;
+        })
+        return this
       },
-      /*
-
-        Öge='Öge'.atttr({ni:'te',li:'k'});
-        
-
-        <div class="Öge" ni="te" li="k"></div>
-    
-
-        Öge'ye nitelik tanımlar
-      */
-      attr:function(k,v){
-        return this.prop.apply(this,[k,v,'attr']);
+      attr(k, v){
+        return this.prop.apply(this, [k, v, 'attr'])
       },
-      link:function(addr,href){
+      link(addr, href){
 
-        this.href=href||addr;
-        this.addr=addr;
-        if(addr.indexOf('//')==-1&&!this.onclick){
-          this.onclick=function(e){
-            e.preventDefault();
-            if(O.Page!='function'){
-              O.Page.route(this.addr,1);
+        this.href = href || addr
+        this.addr = addr
+        if(addr.indexOf('//') == -1 && !this.onclick){
+          this.onclick = function(e){
+            e.preventDefault()
+            if(O.Page != 'function'){
+              O.Page.route(this.addr, 1)
             }
           }
         }
-        return this;
+        return this
       },
-      /*
-        .connect
-        Bir veri kaynağına ögeyi bir özelliğine göre bağlar
-        belirtilen özellik değiştiğinde, veri kaynağından veri çekilerek öge güncellenir.
-        
-        let Veri={ 1:{a:'A1',b:'B1'} }
-
-        Öge='Öge'.has({a:'',b:''}).connect('otag_id',Veri);
-        Öge.otag_id = 1 // Öge 1 deki verilerle güncellenir..
-
-        source(*)   : Veri Kaynağı(Nesne) | Disklet
-        on          : hangi özelliğe duyarlı   
-        nav         : null | true | {range:[int,int]} // .next .prev olsun mu
-      */
-      connect:function(source,on,nav){
+      connect(source, on, nav){
         if(!source){
-          throw Error(".connect requires a data source. https://otagjs.org/#/belge/.connect");
+          throw Error('.connect requires a data source. https://otagjs.org/#/belge/.connect')
         }
-        on=on||'oid';
+        on = on || 'oid'
 
-        let f=(source instanceof Element
-          ?function(ch){
-            this.val=source.val;
-          }    
-          :function(ch){
-            let d = source instanceof Function?source(ch):source[ch];
-            f = (function(d){ this.val=d;}).bind(this);
+        let f = (source instanceof Element
+          ? function(ch) {
+            this.val = source.val
+          }
+          : function(ch) {
+            let d = source instanceof Function ? source(ch) : source[ch]
+            f = d=>{this.val = d}
             if(d instanceof Promise){
-              let s=this;
               d.then(f)
             }else{
-              f(d);
+              f(d)
             }
-          }).bind(this);
+          }).bind(this)
         
         if(nav){
-          let range=null;
-          if(nav instanceof Object&&nav.range){
-            range=nav.range;
+          let range = null
+          if(nav instanceof Object && nav.range){
+            range = nav.range
           }
           this.prop({
-            dataNav:function(to){
+            dataNav(to){
               if(this.source[to]){
-                let p=this.source[to]
-                ,   f=(function(p){
-                  this[on]=p;
-                }).bind(this);
-                if(typeof p=='function'){
-                  p=p();
-                  p instanceof Promise?p.then(f):f(p);
+                let p = this.source[to]
+                  ,   f = p => {
+                    this[on] = p
+                  }
+                if(typeof p == 'function'){
+                  p = p()
+                  p instanceof Promise ? p.then(f) : f(p)
                 }else{
-                  f(p);
+                  f(p)
                 }
               }else{
-                let r = range||[0,this.source.length-1]
-                ,   i = this[on];
-                i=to=='prev'?i-1:i+1;
-                if(i<r[0]){
-                  i=r[1];
-                }else if(i>r[1]){
-                  i=r[0];
+                let r = range || [0, this.source.length - 1]
+                  ,   i = this[on]
+                i = to == 'prev' ? i - 1 : i + 1
+                if(i < r[0]){
+                  i = r[1]
+                }else if(i > r[1]){
+                  i = r[0]
                 }
-                this[on]=i;
+                this[on] = i
               }
-              return this;
+              return this
             },
-            next:function(){
-              return this.dataNav('next');
+            next(){
+              return this.dataNav('next')
             },
-            prev:function(){
-              return this.dataNav('prev');
+            prev(){
+              return this.dataNav('prev')
             }
           })
         }
-        this.prop('source',source).resp(on,f);
+        this.prop('source', source).resp(on, f)
         if(source.hasOwnProperty('_conn')){
-          source._conn(this,on);
+          source._conn(this, on)
         }
-        return this;
+        return this
       },
-      /*
-        Ögenin Verisini isterken doğrular
-        'Form'.has({
-          ad:'input',
-          yaş:'input[type="number"]',
-        }).valid({
-          ad:/[a-zA-ZçğıöşüÇĞİÖŞÜ]+/g,
-          yaş: yaş => isFinite(yaş)&&yaş>18&&yaş<100
-        })
-      */
-      valid:function(validationMap,invalidCallback){
-        this._validator=validationMap;
-        this._invalid=invalidCallback;
-        return this;
+      valid(validationMap, invalidCallback){
+        this._validator = validationMap
+        this._invalid = invalidCallback
+        return this
       }
     },
     String:{
-      
-      /* 
-        '.CSS.Seçici'.get() // [Öge,Öge..]
-        '#Kimlik'.get() // Öge
-
-        Belgedeki Ögeleri getirir
-      */
-      get:function(index){
-        let s=this+'',d=O._selector(s);
-        if(d.args.length||d.ui){throw new Error('Module and argument selector is not available');}
-        var th=O.toArray(document.querySelectorAll(this+''));
+      get(index){
+        let s = this + '', d = O._selector(s)
+        if(d.args.length || d.ui){throw new Error('Module and argument selector is not available')}
+        var th = O.toArray(document.querySelectorAll(this + ''))
         
         if(d.id){
-          index=0;
+          index = 0
         }
-        if(index!=null){
-          th=th[index];
+        if(index != null){
+          th = th[index]
         }
-        return th;
+        return th
       },
-      /* 
-        '.CSS.Seçici'.init() // <div class="CSS Seçici"></div>
-
-        ₺Bileşen çağırır / ₺M:Model çağırır / Öge oluşturur.
-      */
-      init:function(){
-        let s=this+'',d=O._selector(s);
+      init(){
+        let s = this + '', d = O._selector(s)
         if(d.ui){
-          if(!O.UI[d.ui]){console.log(d.ui,'is not defined')};
-          d.el=O.UI[d.ui].apply(d.ui,d.args.concat(O.toArray(arguments)));
+          if(!O.UI[d.ui]){console.log(d.ui, 'is not defined')}
+          d.el = O.UI[d.ui].apply(d.ui, d.args.concat(O.toArray(arguments)))
         }else{
-          d.el=document.createElement(d.el||'div');
+          d.el = document.createElement(d.el || 'div')
         }
         //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
-        d.el.Class(d.class).attr(d.attr);
+        d.el.Class(d.class).attr(d.attr)
         if(d.id){
-          d.el.id=d.id;
+          d.el.id = d.id
         }
-        if(d.el.tagName=='INPUT'){
-          d.el.addEventListener('keyup',function(e){if(e.keyCode==13&&this.enter){this.enter(this.value)}})
+        if(d.el.tagName == 'INPUT'){
+          d.el.addEventListener('keyup', function(e){if(e.keyCode == 13 && this.enter){this.enter(this.value)}})
         }
-        if(!d.el.View){d.el.View={};}
-        return d.el;
+        if(!d.el.View){d.el.View = {}}
+        return d.el
       },
-      /* 
-        '#ResimKutusu'.extends('Bediz')
-
-        Bileşeni belgede bulunan Ögeler ile çağırır.
-      */
-      extends:function(){
-        let e=(this+'').get();
+      extends(){
+        let e = (this + '').get()
         if(e instanceof Array){
-          return e.map(O.F.each('extend',O.toArray(arguments)))
+          return e.map(O.F.each('extend', O.toArray(arguments)))
         }else{
-          return e.extend.apply(e,arguments);
+          return e.extend.apply(e, arguments)
         }
       },
-      /* 
-        'o,t,a,g'.from({g:2,o:'bc',a:5,t:5,y:2017}).join('') // 'bc552'
-
-        Nesneden belirli özelliklerin değerlerini sırayla getirir. Dizi oluşturur
-      */
-
-      from:function(obj){
-        let r= (this=='*'?Object.keys(obj):this.split(',')).map(function(i){return obj[i]});
-        return (this.indexOf(',')==-1&&this!="*")?r[0]:r;
+      from(obj){
+        let r = (this == '*' ? Object.keys(obj) : this.split(',')).map(i=>{return obj[i]})
+        return (this.indexOf(',') == -1 && this != '*') ? r[0] : r
       },
-      /* 
-        Öge='Öge'.has({a:'a'.prop('value',1),b:'b'.prop('value',2)});
-        'a,b'.val(Öge)       // [1,2]
-        'a,b'.from(Öge.val) // [1,2] aslında bu demektir.
-
-        Öge'nin değerinden istenilen alanları sırayla getirir. Dizi oluşturur
-      */
-      val:function(obj){
-        let r=this.split(',').map(function(i){return this[i]},obj.val);
-        return r.length==1?r[0]:r;
+      val(obj){
+        let r = this.split(',').map(i=>{return obj.val[i]})
+        return r.length == 1 ? r[0] : r
       },
-      /* 
-         nesneyi istenilen alanlara göre keser
-         'ad,soyad'.of({ad:'',soyad:'',bediz:''}) => {ad:'',soyad:''}
-      */
-      of:function(obj){
-        return this=='*'?obj:this.split(',').reduce(function(o,i){o[i]=obj[i]||null;return o},{});
+      of(obj){
+        return this == '*' ? obj : this.split(',').reduce((o, i)=>{o[i] = obj[i] || null;return o}, {})
       },
-      /*
-        Diziden nesne yapar
-        'ad,soyad,bediz,özellik1'.obj(['koraltan','temren','temren.jpg']) =>
-        {ad:'koraltan',soyad:'temren',bediz:'temren.jpg'}
-        def girdisine, dizide o indis yoksa belirecek öntanımlı değer girebilirsiniz
-        bu öntanımlı değer hepsi için ortak ya da indise özgü olabilir.
-      */
-      obj:function(arr,def){
+      obj(arr, def){
         return this.split(',').reduce(
           def instanceof Array
           //indise özgü öntanımlı
-          ?function(n,i,j){
-            n[i]=arr[j]||def[j];
-            return n;
-          }
+            ? (n, i, j)=>{
+              n[i] = arr[j] || def[j]
+              return n
+            }
           //ortak öntanımlı
-          :function(n,i,j){
-            n[i]=arr[j]||def;
-            return n;
-          }
-        ,{});
+            : (n, i, j)=>{
+              n[i] = arr[j] || def
+              return n
+            }
+          , {})
       },
-      /* 
-        'Esenlikler yer₺!'.vars({yer:'Yertinç'}) //Esenlikler Yertinç!
-
-        Değişken₺ tanımlı Yazı'ları işler
-      */
-      vars:function(vars){
-        vars=typeof vars=='object'?vars:arguments;
-        return Object.keys(vars).reduce(function(m,v){
-          return m.replace(new RegExp("("+v+"[₺|\$|₸|₼])+"),vars[v]);
-        },this)
+      vars(vars){
+        vars = typeof vars == 'object' ? vars : arguments
+        return Object.keys(vars).reduce((m, v)=>{
+          return m.replace(new RegExp('(' + v + '[₺|$|₸|₼])+'), vars[v])
+        }, this)
       },
-      varsX:function(vars){
-        vars=typeof vars=='object'?vars:arguments;
-        let v= Object.keys(vars).reduce(function(m,v){
-          return m.replace(new RegExp("("+v+"[₺|\$|₸|₼])+"),vars[v] instanceof Element?'|'+v+'|':vars[v]);
-        },this).split('|');
-        v=v.map(function(i,j){
-          return j%2?vars[i]:document.createTextNode(i);
+      varsX(vars){
+        vars = typeof vars == 'object' ? vars : arguments
+        let v = Object.keys(vars).reduce((m, v)=>{
+          return m.replace(new RegExp('(' + v + '[₺|$|₸|₼])+'), vars[v] instanceof Element ? '|' + v + '|' : vars[v])
+        }, this).split('|')
+        v = v.map((i, j)=>{
+          return j % 2 ? vars[i] : document.createTextNode(i)
 
         })
-        console.log(v);
-        return v;
+        console.log(v)
+        return v
       },
-      replaceAll:function(f,r){
-        var s=this;
+      replaceAll(f, r){
+        var s = this
         for(var i in f){
-          while(s.indexOf(f[i])>-1){
-            s=s.replace(f[i],r[i]);
+          while(s.indexOf(f[i]) > -1){
+            s = s.replace(f[i], r[i])
           }
         }
-        return s;
+        return s
       }
     },
     Function:{
-      /*
-        f=function(){}
-        f=f.prom();
-        f(girdiler).then(tamamlandı)
-
-        İşlevi söze dönüştürür.
-      */
-      prom:function(){
-        let f=this;
-        return function(){
-          let a=arguments;
-          return new Promise(function(res,rej){
+      prevent(){
+        return e => {
+          e.preventDefault()
+          this(e)
+        }
+      },
+      stop(){
+        return e => {
+          e.stopPropagation()
+          this(e)
+        }
+      },
+      prom(bind){
+        let f = this.bind(bind)
+        return ()=>{
+          let a = arguments
+          return new Promise((res, rej)=>{
             try{
-              var r=f.apply(f,a);
-              res(r);
+              var r = f.apply(null, a)
+              res(r)
             }catch(e){
-              rej(e);
+              rej(e)
             }
-            
           })
         }
       },
-      /*
-        Belirli bir zaman için işlevi sınırlandırır,geciktirir.
-      */
-      debounce :function(delay) {
-        let f=this;
-        let inDebounce;
+      debounce (delay) {
+        let f = this
+        let tOut
         return function() {
-          let a=arguments,s=this;
-          clearTimeout(inDebounce);
-          inDebounce = setTimeout(function(){
-            f.apply(s, a)
-          },delay);
-          return s;
+          let a = arguments, s = this
+          clearTimeout(tOut)
+          tOut = setTimeout(()=>{f.apply(s, a)}, delay)
+          return s
         }
       }
     },
     Image:{
-      set:function(s){
+      set(s){
         return this.Class('loading').prop({
-          onload:function(){this.Class('loading',1)},
-          onerror:function(){this.Class('loading',1).Class('error')}
-          ,src:s});
+          onload(){this.Class('loading', 1)},
+          onerror(){this.Class('loading', 1).Class('error')}
+          , src:s})
       },
-      value:function(){
-        return this.src;
-      }
-    }
-  }
-};
-O.F={
-  //. A/B
-  // [1,2,3,4].filter(O.Filter.diff([3,4,5])); =>1,2
-  diff:function(arr){
-    return function(i){
-      return arr.indexOf(i)<0
-    }
-  },
-  //A∩B
-  // [1,2,3,4].filter(O.Filter.arrHas([3,4,5])); =>3,4
-  arrHas:function(arr){
-    return function(v){
-      return arr.indexOf(v)>-1;
-    }
-  },
-  // [1,2,3,4,5].filter(O.num(2,4)))=>3
-  num:function(min,max){
-    if(min instanceof Array){
-      max=min[1];min=min[0];
-    }
-    return function(a){
-      return (!min||a>min)&&(!max||a<max)
-    }
-  },
-  //Nesne hasOwnProp
-  hasProp:function(o){
-    return function(p){
-      return o.hasOwnProperty(p);
-    }
-  },
-  //regex sınaması
-  reg:function(ex){
-    ex=new RegExp(ex);
-    return function(v){
-      return ex.test(v);
-    }
-  },
-  //Yazının başlangıcı
-  pref:function(s){
-    let l=s.length;
-    return function(v){
-      return v.substring(0,l)==s;
-    }
-  },
-  // eq'ya eşit mi O.F.eq(1);
-  eq:function(eq,eq2,type,cb){
-    return arguments.length==1?function(v){
-      return v==eq;
-    }:(cb?function(v){
-      return cb(v[type](eq))==eq2;
-    }:function(v){
-
-      return (type='prop'?v[eq]:v[type](eq))==eq2;
-    })
-  },
-  // Dizideki aynı ögeleri sil
-  unique:function(v, i, self) { 
-    return self.indexOf(v) === i;
-  },
-
-
-
-  // ögelerin özelik/nitelik değerlerini getir
-  value:function(p,cb,attr){
-    attr=attr?'attr':'prop';
-    return cb?function(v){
-      return cb(v[attr](p));
-    }:function(v){
-      return v[attr](p);
-    }
-  }
-  /*
-     aynı girdilerle belirli bir yöntemi çağır
-     ['a','b','c'].map(O.Filter.each('prop',{propName:'propValue'}))
-  */
-  ,each:function(method,args){
-    if(!(args instanceof Array)){
-      args=[args];
-    }
-    return function(i){
-      if(i[method]){
-        return i[method].apply(i,args);
+      value(){
+        return this.src
       }
     }
   }
 }
-O.UI={
+
+O.UI = {
   //'₺M:Model' yazımını sağlamak içindir,değiştirmeyin
-  M:function(arg){
-    let a=O.toArray(arguments);
-    return O.Model[a.shift()].apply('',a);
+  M(){
+    let a = O.toArray(arguments)
+    return O.Model[a.shift()].apply('', a)
   }
 }
-Otag.Model={
+Otag.Model = {
   //Örnek bir Modeldir, ₺List'te Öntanımlıdır. Çok kullandığınız bir Model'le değiştirebilirsiniz.
-  Default:function(i){
-    var w = {};
+  Default(i){
+    var w = {}
     Object.keys(i)
-    .forEach(function(j){
-      w[j]=j;
-    });
-    return 'defaultModel'.has(w).setView(i);
+      .forEach(j => {
+        w[j] = j
+      })
+    return 'defaultModel'.has(w).setView(i)
   }
 }
-Object.keys(O.proto).forEach(function(i){
-  O.combine(window[i].prototype||window[i],O.proto[i]);
-});
-Object.keys(O.proto.Element).forEach(function(i){
-  Number.prototype[i]=String.prototype[i]=function(){
-    let j=this.init();
-    return j[i].apply(j,arguments)
+
+Object.keys(O.proto).forEach(i => Object.assign(window[i].prototype || window[i], O.proto[i]))
+Object.keys(O.proto.Element).forEach(i=>{
+  Number.prototype[i] = String.prototype[i] = function(){
+    let j = this.init()
+    return j[i].apply(j, arguments)
   }
-});
-delete O.proto;
-Object.defineProperties(Element.prototype,{
+})
+delete O.proto
+Object.defineProperties(Element.prototype, {
 
   val:{
-  get:function(){
-    if(typeof this.value == 'function'){
-      return this.value();
-    }
-    else if(this.value||this.hasOwnProperty('value')){return this.value;}
-    else if(this.View){
-      let d={},n=this,v;
-      if(Object.keys(this.View).some(function(i){
-        if(i[0]!='_'&&!this.View[i].isSameNode(n)){
-          if(this._validator&&(v=this._validator[i])){
-            if(!(typeof v=='function'?v(this.View[i].val):v.test(this.View[i].val))){
-              if(this._invalid){
-                this._invalid();
-              }
-              return true;
-            }
-          }
-          d[i]=this.View[i].val;
-        }
-        return false;
-      },this)){
-        return null;
-      }else{
-        return d;
+    get(){
+      if(typeof this.value == 'function'){
+        return this.value()
       }
-    }
-    else{return this.data||null;}
-  },
-  set:function(o){
-    if(o instanceof Promise){
-      let s=this;
-      o.then(function(o){
-        s.val=o;
-      })
-    }
-    if(this.View){this.setView(o)}else{this.set(o);}}
+      else if(this.value || this.hasOwnProperty('value')){return this.value}
+      else if(this.View){
+        let d = {}, n = this, v
+        if(Object.keys(this.View).some(i => {
+          if(i[0] != '_' && !this.View[i].isSameNode(n)){
+            if(this._validator && (v = this._validator[i])){
+              if(!(typeof v == 'function' ? v(this.View[i].val) : v.test(this.View[i].val))){
+                if(this._invalid){
+                  this._invalid()
+                }
+                return true
+              }
+            }
+            d[i] = this.View[i].val
+          }
+          return false
+        }, this)){
+          return null
+        }else{
+          return d
+        }
+      }
+      else{return this.data || null}
+    },
+    set(o){
+      if(o instanceof Promise){
+        let s = this
+        o.then(o => {
+          s.val = o
+        })
+      }
+      if(this.View){this.setView(o)}else{this.set(o)}}
   }
-});
+})

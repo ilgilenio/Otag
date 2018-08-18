@@ -1,0 +1,30 @@
+env:
+  browser: true
+  node: true
+  es6: true
+extends: ['eslint:recommended']
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: module
+rules:
+  indent:
+    - error
+    - 2
+  space-infix-ops:
+    - error
+    - int32Hint : true
+  space-after-function-paren:
+    - error
+    - always
+  linebreak-style:
+    - error
+    - unix
+  quotes:
+    - error
+    - single
+  semi:
+    - error
+    - never
+  comma-spacing:
+    - error
+    - after : true

@@ -31,15 +31,26 @@ Sürümleri ve etkinlikleri [takip edin 📆](https://ilgilenio.github.io/Otag/c
 
 #### Belgelendirme
 [Github Wiki](https://github.com/ilgilenio/Otag/wiki)
+
 [GitLab Wiki](https://gitlab.com/ilgilenio/Otag/wikis) (Buraya taşınması sürüyor)
+
 [OtagJS ORG](https://otagjs.org/#/belge)
+
+#### Destek
+GitLab üzerinde sorun(issue) [bildirebilirsiniz](https://gitlab.com/ilgilenio/Otag/issues).
 
 #### Lisans
 MIT Lisansı ile korunmaktadır.
 
 #### Katılım sağlama
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
+
+#### İletişim
+İşbirlikleri ve daha fazlası için <a href="mailto:bilgi@otagjs.org">bilgi@otagjs.org</a> bulunağına ileti gönderebilirsiniz.
+
 [Tasarı gözlem yazıtımız](https://tree.taiga.io/project/ilgilenio-otag/kanban)'a gözatın
-<a href="https://github.com/ilgilenio/Otag/wiki">
+<a href="https://otagjs.org" title="Otağ'a ilerle">
     <img src="https://ilgilenio.github.io/Otag/img/otag.tengri.png" alt="Otağ, Tengri Dağı">
   </a>
+
+
