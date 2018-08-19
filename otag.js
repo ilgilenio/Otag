@@ -50,10 +50,10 @@ var O, Otag = O = {
   
   Page(opts){
     opts = Object.assign({
-      routes:{},
-      Nav:true,
-      hide:[],
-      none:'Bulunamadı'.prop({
+      routes: {},
+      Nav: true,
+      hide: [],
+      none: 'Bulunamadı'.prop({
         name: 'Bulunamadı'
       }).layout([
         ['center', [
@@ -76,7 +76,7 @@ var O, Otag = O = {
       }).prop('route', r)
     }
     O.Page = O.resp.call({
-      to:new Proxy({}, {
+      to: new Proxy({}, {
         get(o, k){
           return function(){
             if(this){
@@ -88,7 +88,7 @@ var O, Otag = O = {
           }
         }
       }),
-      routes:new Proxy({}, {
+      routes: new Proxy({}, {
         set(o, k, v){
           o[k] = v
           if(opts.Nav && v instanceof Element && (opts.hide.indexOf(k) < 0)){
@@ -203,10 +203,10 @@ var O, Otag = O = {
       if(isFinite(name) && typeof O.i18n != 'function'){
         let s = this.title
         name = O.i18n.get(name).then(name => {
-          s.set({page:name || ''})
+          s.set({page: name || ''})
         })
       }else{
-        this.title.set({page:name || ''})
+        this.title.set({page: name || ''})
       }
       
     }})
@@ -239,7 +239,7 @@ var O, Otag = O = {
       fields = diskPrefix
       diskPrefix = data
       data = null
-      let Src = {_ready:-1, sum(keys){
+      let Src = {_ready: -1, sum(keys){
         let s = this
         return Object.keys(s).reduce((n, i) => {
           if(i != 'sum' && i != '_ready'){
@@ -299,7 +299,7 @@ var O, Otag = O = {
               if(data && data.id){
                 data.id = k
               }
-              O.req(url.vars({id:k}), data).then(r=>{
+              O.req(url.vars({id: k}), data).then(r=>{
                 res(o[key] = fields.of(r))
                 if(expire){
                   O.Disk.expire(key, expire)
@@ -337,7 +337,7 @@ var O, Otag = O = {
         Store.push([Elem, on])
       },
       set(n){
-        Sock.emit(channel, cmb({set:n}))
+        Sock.emit(channel, cmb({set: n}))
       }
     }, {
       get(o, k){
@@ -349,14 +349,14 @@ var O, Otag = O = {
             Ref[k] = []
           }
           Ref[k].push(res)
-          Sock.emit(channel, cmb({get:k}))
+          Sock.emit(channel, cmb({get: k}))
         })
       },
       set(o, k, v){
-        o.set({[k]:v})
+        o.set({[k]: v})
       },
       deleteProperty(o, k){
-        Sock.emit(channel, cmb({rem:k}))
+        Sock.emit(channel, cmb({rem: k}))
       }
     })
   },
@@ -379,7 +379,7 @@ var O, Otag = O = {
 
   resp(prop, f){
     if(typeof prop == 'string'){
-      prop = {[prop]:f}
+      prop = {[prop]: f}
     }
     let e = this || {}
     Object.defineProperties(e, Object.keys(prop).reduce(function(s, p){
@@ -421,7 +421,7 @@ var O, Otag = O = {
   
   stor(prop, storekey){
     if(typeof prop == 'string'){
-      prop = {[prop]:storekey}
+      prop = {[prop]: storekey}
     }
     return Object.keys(prop).reduce((e, p)=>{
       var store = prop[p], v
@@ -438,18 +438,18 @@ var O, Otag = O = {
     }, this || {})
   },
   
-  ready:new Promise(res => {
+  ready: new Promise(res => {
     document.addEventListener('DOMContentLoaded', () => res(document.body))
   }),
 
   _selector(s){
     var d = {
-      attr:/\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
-      class:/\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
-      id:/#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
-      ui:/[$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-      args:/:(\w+)/g,
-      el:/^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
+      attr: /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
+      class: /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
+      id: /#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
+      ui: /[$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
+      args: /:(\w+)/g,
+      el: /^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
     }
     d = Object.keys(d).reduce(function(o, i){
       var rm = [], e, x = -1, r = d[i]
@@ -471,7 +471,7 @@ var O, Otag = O = {
         s = s.replace(i, '')
       })
       return o
-    }, {class:[], attr:{}, id:null, ui:null, args:[], el:null})
+    }, {class: [], attr: {}, id: null, ui: null, args: [], el: null})
 
     if(s.length){
       d.class = d.class.concat(s.split(' '))
@@ -488,14 +488,14 @@ var O, Otag = O = {
     })
   },
 
-  _conf:{
-    req:{ep:'/ep₺'},
+  _conf: {
+    req: {ep: '/ep₺'},
   },
   
-  Time:new Proxy({
-    yesterday:864e5,
-    today:0, now:0,
-    tomorrow:-864e5
+  Time: new Proxy({
+    yesterday: 864e5,
+    today: 0, now: 0,
+    tomorrow: -864e5
   }, {get(a, b){
     let t = new Date(+new Date - a[b])
     if(b != 'now'){
@@ -504,7 +504,7 @@ var O, Otag = O = {
       t.setSeconds(0)
     }return Math.floor(t.getTime() / 1000)}}),
   
-  Disk:new Proxy({
+  Disk: new Proxy({
     expire(key, time){
       O.Disk[key + ':expire'] = O.Time.now + Number(time)
     },
@@ -545,16 +545,16 @@ var O, Otag = O = {
   
   Sock(opts){
     opts = Object.assign({
-      url:null,       // websocket host
-      q:{},          // query object
-      interval:3000 // yeniden bağlanma 3s
-    }, typeof opts == 'string' ? {url:opts} : (opts || {}))
+      url: null,       // websocket host
+      q: {},          // query object
+      interval: 3000 // yeniden bağlanma 3s
+    }, typeof opts == 'string' ? {url: opts} : (opts || {}))
 
     opts.q = Object.assign(opts.q, opts.socketio ? {
 
-      transport:'polling',
-      EIO:3
-    } : {_osid:O._uid(16)})
+      transport: 'polling',
+      EIO: 3
+    } : {_osid: O._uid(16)})
 
 
     opts.url = opts.url || window.location.origin // başarımı artırmak için öntanımlı opts nesnesinde değil
@@ -623,7 +623,7 @@ var O, Otag = O = {
     var XHR = new XMLHttpRequest()
     
     //backend+endpoint
-    XHR.open(data ? 'POST' : 'GET', ep.indexOf('/') > -1 ? ep : (O._conf.req.ep.vars({ep:ep})), true)
+    XHR.open(data ? 'POST' : 'GET', ep.indexOf('/') > -1 ? ep : (O._conf.req.ep.vars({ep: ep})), true)
     XHR.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
     return new Promise(function(res, rej){
       XHR.onreadystatechange = function(){
@@ -637,9 +637,9 @@ var O, Otag = O = {
                 r = this.response
               }
               res(r)
-            }else{rej({error:'empty response'})}
+            }else{rej({error: 'empty response'})}
           }else{
-            rej({error:{code:this.status}})
+            rej({error: {code: this.status}})
           }
         }
       }
@@ -673,15 +673,15 @@ var O, Otag = O = {
 
   i18n(opts){
     opts = Object.assign({
-      langs:{tr:'Türkçe'},
-      map:null,
-      rtl:['ar', 'fa'],
-      div:'select'.prop({onchange(){this.dil = this.value}}),
+      langs: {tr: 'Türkçe'},
+      map: null,
+      rtl: ['ar', 'fa'],
+      div: 'select'.prop({onchange(){this.dil = this.value}}),
       model(i){
         return 'option'.attr('value', i).set(this[i])
       },
-      ranges:[1],
-      scope:''
+      ranges: [1],
+      scope: ''
     }, opts) //Ön tanımlı seçenekler
     var def = O.Disk._lang || opts.lang || navigator.language.substr(0, 2).toLowerCase()
     if(!opts[def]){
@@ -702,96 +702,96 @@ var O, Otag = O = {
     }
     opts.model = opts.model.bind(opts.langs)
     return O.i18n = opts.div
-      .has(
-        Object.keys(opts.langs).reduce((s, i)=>{
-          s[i] = opts.model(i)
-          return s
-        }, {}))
-      .prop({
-        _:opts,
-        onchange(){
-          this.dil = this.value
-        },
-        get(phrase){
-          let e = this
-          return new Promise((res, rej)=>{
-            e.ready.then(()=>{
-              var phr = Math.floor(phrase)
-              phrase = Math.round(phrase % 1 * 10)
-              if(e._.phr[phr]){
-                res(e._.phr[phr].split('=')[phrase])
-              }else{
-                rej()
-              }
+        .has(
+          Object.keys(opts.langs).reduce((s, i)=>{
+            s[i] = opts.model(i)
+            return s
+          }, {}))
+        .prop({
+          _: opts,
+          onchange(){
+            this.dil = this.value
+          },
+          get(phrase){
+            let e = this
+            return new Promise((res, rej)=>{
+              e.ready.then(()=>{
+                var phr = Math.floor(phrase)
+                phrase = Math.round(phrase % 1 * 10)
+                if(e._.phr[phr]){
+                  res(e._.phr[phr].split('=')[phrase])
+                }else{
+                  rej()
+                }
   
+              })
             })
-          })
-        },
-        refresh(){
-          ('[phrase]').get().map(O.F.each('Lang'))
-        },
-        ready:new Promise(res=>{
+          },
+          refresh(){
+            ('[phrase]').get().map(O.F.each('Lang'))
+          },
+          ready: new Promise(res=>{
   
-          let i = setInterval(()=>{
-            let c = O.i18n._
-            if(c.r ? (c.r == c.ranges.length) : c.phr && Object.keys(c.phr).length){
-              clearInterval(i)
-              res(1)
-              O.i18n.dil = c.lang
-            }
-          }, 100)
-        })
-      }).resp({
-        dil(dil){
-          this.View[dil].selected = true
-          O.Disk._lang = dil
-          O.ready.then(b=>b.Class('rtl', O.i18n._.rtl.indexOf(O.Disk._lang) == -1))
-          let e = this, c = e._, set = function(res){
-            c.lang = dil
-            O.Disk['_l' + c.lang + (this[1] || '') + e._.scope] = res
-            res = res.split('\n')
-            if(e._.map){res = res.map(e._.map)}
-            res.forEach(function(i, j){
-              c.phr[j + this] = i
-            }, this[0] || 1)
-            if(this[2] == 'net'){
-              var t = O.Disk._lTime || Array.from({length:c.ranges.length}).map(()=>0)
-              t[this[1]] = O.Time.now
-              O.Disk._lTime = t
-            }
-            c.r++
-            e.refresh()
-          }
-          e.refresh()
-          c.phr = null
-          if(c.path){
-            var res
-            c.phr = {};
-            (c.ranges || [1]).forEach(function(i, j){
-              if(res = O.Disk['_l' + dil + (j || '') + e._.scope]){
-                set.call([i, j], res)
-              }else{
-                O.req(this.vars({lang:dil, part:j, scope:e._.scope})).then(set.bind([i, j, 'net']))
+            let i = setInterval(()=>{
+              let c = O.i18n._
+              if(c.r ? (c.r == c.ranges.length) : c.phr && Object.keys(c.phr).length){
+                clearInterval(i)
+                res(1)
+                O.i18n.dil = c.lang
               }
+            }, 100)
+          })
+        }).resp({
+          dil(dil){
+            this.View[dil].selected = true
+            O.Disk._lang = dil
+            O.ready.then(b=>b.Class('rtl', O.i18n._.rtl.indexOf(O.Disk._lang) == -1))
+            let e = this, c = e._, set = function(res){
+              c.lang = dil
+              O.Disk['_l' + c.lang + (this[1] || '') + e._.scope] = res
+              res = res.split('\n')
+              if(e._.map){res = res.map(e._.map)}
+              res.forEach(function(i, j){
+                c.phr[j + this] = i
+              }, this[0] || 1)
+              if(this[2] == 'net'){
+                var t = O.Disk._lTime || Array.from({length: c.ranges.length}).map(()=>0)
+                t[this[1]] = O.Time.now
+                O.Disk._lTime = t
+              }
+              c.r++
+              e.refresh()
+            }
+            e.refresh()
+            c.phr = null
+            if(c.path){
+              var res
+              c.phr = {};
+              (c.ranges || [1]).forEach(function(i, j){
+                if(res = O.Disk['_l' + dil + (j || '') + e._.scope]){
+                  set.call([i, j], res)
+                }else{
+                  O.req(this.vars({lang: dil, part: j, scope: e._.scope})).then(set.bind([i, j, 'net']))
+                }
           
-            }, c.path)
-          }else{
-            c.lang = dil
-          }
+              }, c.path)
+            }else{
+              c.lang = dil
+            }
           //this.View[this.dil].selected=false;
       
-        }}).prop({dil:def})
+          }}).prop({dil: def})
   },
 
   toArray(obj){
     return (obj._ ? ((typeof obj._ == 'string') ? obj._.split(',') : obj._) : Object.keys(obj)).map(function(i){return obj[i]})
   },
 
-  proto:{
-    Element:{
+  proto: {
+    Element: {
       V(path){
         return (path || '').split(':')
-          .reduce((s, i)=>s ? (i == '' ? s.View : (s.View[i] ? s.View[i] : null)) : null, this)
+            .reduce((s, i)=>s ? (i == '' ? s.View : (s.View[i] ? s.View[i] : null)) : null, this)
       },
       p(top){
         var s = this
@@ -867,7 +867,7 @@ var O, Otag = O = {
           if(attr){
             
             if(!(k instanceof Object)){
-              k = {[k]:val}
+              k = {[k]: val}
             }
             Object.keys(k).forEach(i=>{
               e.setAttribute(i, k[i])
@@ -970,7 +970,7 @@ var O, Otag = O = {
               if(typeof e[i] == 'function'){
                 e[i] = e[i]()
               }
-              return (this.View[i] = e[i].prop({parent:this}))
+              return (this.View[i] = e[i].prop({parent: this}))
             })
           }}
         return this.append(e, before)
@@ -1167,7 +1167,7 @@ var O, Otag = O = {
         return this
       }
     },
-    String:{
+    String: {
       get(index){
         let s = this + '', d = O._selector(s)
         if(d.args.length || d.ui){throw new Error('Module and argument selector is not available')}
@@ -1262,7 +1262,7 @@ var O, Otag = O = {
         return s
       }
     },
-    Function:{
+    Function: {
       prevent(){
         return e => {
           e.preventDefault()
@@ -1300,12 +1300,12 @@ var O, Otag = O = {
         }
       }
     },
-    Image:{
+    Image: {
       set(s){
         return this.Class('loading').prop({
           onload(){this.Class('loading', 1)},
           onerror(){this.Class('loading', 1).Class('error')}
-          , src:s})
+          , src: s})
       },
       value(){
         return this.src
@@ -1326,9 +1326,9 @@ Otag.Model = {
   Default(i){
     var w = {}
     Object.keys(i)
-      .forEach(j => {
-        w[j] = j
-      })
+        .forEach(j => {
+          w[j] = j
+        })
     return 'defaultModel'.has(w).setView(i)
   }
 }
@@ -1343,7 +1343,7 @@ Object.keys(O.proto.Element).forEach(i=>{
 delete O.proto
 Object.defineProperties(Element.prototype, {
 
-  val:{
+  val: {
     get(){
       if(typeof this.value == 'function'){
         return this.value()

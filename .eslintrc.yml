@@ -10,6 +10,11 @@ rules:
   indent:
     - error
     - 2
+    - MemberExpression   : 1
+      VariableDeclarator :
+        let   : 1
+        var   : 2
+        const : 3
   space-infix-ops:
     - error
     - int32Hint : true

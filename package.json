@@ -21,6 +21,7 @@
   "devDependencies": {
     "eslint": "^5.2.0",
     "eslint-config-standard": "^11.0.0",
+    "mocha": "^5.2.0",
     "rollup": "^0.64.1",
     "rollup-plugin-terser": "^1.0.1",
     "webpack": "^4.16.5",
