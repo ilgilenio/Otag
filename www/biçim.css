@@ -1,0 +1,65 @@
+body{
+    margin:0;
+    padding:0;
+    background:#fafafa;
+}
+.Uygulama {
+    display: flex;
+}
+.Yönlendir {
+    display: flex;
+    flex-direction: column;
+    background: #eee;
+    height: 100%;
+    position: fixed;
+}
+.Yönlendir div{
+	display: flex;
+    flex-direction: column;
+    background: #eee;
+}
+.Yönlendir a {
+    font-size: 18px;
+    padding: 5px 10px;
+    color: #444;
+    text-decoration: none;
+    box-shadow: 0 1px;
+    margin: 0 10px;
+}
+.Yönlendir a:last-child {
+    box-shadow:none
+}
+.Yönlendir img {
+    margin: 20px;
+    height: 65px;
+    background: #ffffff;
+    border-radius: 50%;
+    width: 65px;
+    
+    cursor:pointer
+}
+.Taşıyıcı{
+	padding: 20px;
+	width: 100%;
+	margin-left: 130px;
+}
+.Ana.Bet {
+    text-align: center;
+}
+
+.Ana img {
+    width: 300px;
+    box-shadow: 0 1px #ccc;
+    margin: 16px;
+    padding: 20px 8px;
+}
+
+.desc {
+    font-size: 40px;
+    transition:.3s;
+    opacity:0;
+
+}
+.desc.açık{
+    opacity:1
+}

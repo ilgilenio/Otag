@@ -4,7 +4,9 @@
   "description": "Değişen ve gelişen günümüz teknolojisine layık **Hızlı**, **Yalın**, **Yenilikçi** “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.",
   "main": "o.js",
   "scripts": {
-    "bundle": "rollup -c rollup.config.js"
+    "bundle": "rollup -c rollup.config.js",
+    "test:e2e": "cypress run",
+    "serve": "cp otag.js www;http-server www -p 1453 "
   },
   "dependencies": {
     "nesne": "^1.0.0",
@@ -19,8 +21,10 @@
   },
   "homepage": "https://github.com/ilgilenio/Otag#readme",
   "devDependencies": {
+    "cypress": "^3.1.0",
     "eslint": "^5.2.0",
     "eslint-config-standard": "^11.0.0",
+    "http-server": "^0.11.1",
     "mocha": "^5.2.0",
     "rollup": "^0.64.1",
     "rollup-plugin-terser": "^1.0.1",
