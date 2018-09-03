@@ -446,13 +446,17 @@ var O, Otag = O = {
   }),
 
   _selector(s){
+    let args = []
+    if(s.indexOf(':')>-1){
+      args = s.split(':')
+      s = args.shift()
+    }
     var d = {
-      attr: /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
+      attr: /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ#]+)"\]/g,
       class: /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
       id: /#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
       ui: /[$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-      args: /:(\w+)/g,
-      el: /^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
+      tag: /^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g
     }
     d = Object.keys(d).reduce(function(o, i){
       var rm = [], e, x = -1, r = d[i]
@@ -474,8 +478,8 @@ var O, Otag = O = {
         s = s.replace(i, '')
       })
       return o
-    }, {class: [], attr: {}, id: null, ui: null, args: [], el: null})
-
+    }, {class: [], attr: {}, id: null, ui: null, tag: null})
+    d.args = args
     if(s.length){
       d.class = d.class.concat(s.split(' '))
     }
@@ -909,7 +913,7 @@ var O, Otag = O = {
             a = a.replace(new RegExp('(\\b' + b + ')+'), '')
             return (r ? a : (a + ' ' + b)).replace(/\s{2}/g, ' ').trim()
           }, this.className)
-          if(this.className.trim()==''){
+          if(this.className.trim() == ''){
             this.removeAttribute('class')
           }
         }
@@ -1192,11 +1196,15 @@ var O, Otag = O = {
       },
       init(){
         let s = this + '', d = O._selector(s)
+        d.args = d.args.concat(O.toArray(arguments))
         if(d.ui){
           if(!O.UI[d.ui]){console.log(d.ui, 'is not defined')}
-          d.el = O.UI[d.ui].apply(d.ui, d.args.concat(O.toArray(arguments)))
+          d.el = O.UI[d.ui].apply(d.ui, d.args )
         }else{
-          d.el = document.createElement(d.el || 'div')
+          d.el = document.createElement(d.tag || 'div')
+          if(d.args.length){
+            d.el.set.apply(d.el, d.args)
+          }
         }
         //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
         d.el.Class(d.class).attr(d.attr)
@@ -1204,6 +1212,26 @@ var O, Otag = O = {
           d.el.id = d.id
         }
         if(d.el.tagName == 'INPUT'){
+          /*Object.defineProperties(d.el.prototype,{
+            enter:{
+              set(func){
+                this.addEventListener('keyup',e=>{
+                  if(e.keyCode==13){
+                    func(this.value)
+                  }
+                })
+              }
+            },
+            backspace:{
+              set(func){
+                this.addEventListener('keyup',e=>{
+                  if(e.keyCode==13){
+                    func(this.value)
+                  }
+                })
+              }
+            }
+          })*/
           d.el.addEventListener('keyup', function(e){if(e.keyCode == 13 && this.enter){this.enter(this.value)}})
         }
         if(!d.el.View){d.el.View = {}}
@@ -1324,7 +1352,7 @@ var O, Otag = O = {
     }
   },
   props: {
-    Element: {
+    String: {
       el: {
         get(){
           return this.init()
@@ -1347,7 +1375,9 @@ var O, Otag = O = {
             })
           Object.assign(el, v)
         }
-      },
+      }
+    },
+    Element: {
       val: {
         get(){
           if(typeof this.value == 'function'){

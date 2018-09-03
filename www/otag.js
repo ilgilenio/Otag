@@ -1,4 +1,4 @@
-﻿/*   _             _
+﻿/*    _             _
   o  | |        o  | |                o
  _   |/   __,  _   |/   __  _  __    _    __
   |  |   /  | / |  |   |_/ / |/  |  / |  /  \
@@ -75,8 +75,8 @@ var O, Otag = O = {
         O.Page.routes[route] = this
       }).prop('route', r)
     }
-    Element.prototype.to = function(page,args){
-      this.onclick=(e=>O.Page.to[page].apply(1,args)).prevent.stop
+    Element.prototype.to = function(page, args){
+      this.onclick = (e=>O.Page.to[page].apply(1, args)).prevent.stop
     }
     O.Page = O.resp.call({
       to: new Proxy({}, {
@@ -446,13 +446,17 @@ var O, Otag = O = {
   }),
 
   _selector(s){
+    let args = []
+    if(s.indexOf(':')>-1){
+      args = s.split(':')
+      s = args.shift()
+    }
     var d = {
-      attr: /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)"\]/g,
+      attr: /\[(,?[ ]?([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9.-_şŞüÜöÖçÇİığĞ]+)")+\]/g,
       class: /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
       id: /#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
       ui: /[$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-      args: /:(\w+)/g,
-      el: /^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
+      tag: /^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g  //tag
     }
     d = Object.keys(d).reduce(function(o, i){
       var rm = [], e, x = -1, r = d[i]
@@ -460,7 +464,8 @@ var O, Otag = O = {
         rm.push(e[0])
         x = r.lastIndex
         if(o[i] instanceof Object && !(o[i] instanceof Array)){
-          o[i][e[1]] = e[2]
+          debugger
+          o[i][e[2]] = e[3]
         }else{
           if(o[i] == null){
             o[i] = e[1] || e[0]
@@ -474,8 +479,8 @@ var O, Otag = O = {
         s = s.replace(i, '')
       })
       return o
-    }, {class: [], attr: {}, id: null, ui: null, args: [], el: null})
-
+    }, {class: [], attr: {}, id: null, ui: null, tag: null})
+    d.args = args
     if(s.length){
       d.class = d.class.concat(s.split(' '))
     }
@@ -705,85 +710,85 @@ var O, Otag = O = {
     }
     opts.model = opts.model.bind(opts.langs)
     return O.i18n = opts.div
-        .has(
-          Object.keys(opts.langs).reduce((s, i)=>{
-            s[i] = opts.model(i)
-            return s
-          }, {}))
-        .prop({
-          _: opts,
-          onchange(){
-            this.dil = this.value
-          },
-          get(phrase){
-            let e = this
-            return new Promise((res, rej)=>{
-              e.ready.then(()=>{
-                var phr = Math.floor(phrase)
-                phrase = Math.round(phrase % 1 * 10)
-                if(e._.phr[phr]){
-                  res(e._.phr[phr].split('=')[phrase])
-                }else{
-                  rej()
-                }
+      .has(
+        Object.keys(opts.langs).reduce((s, i)=>{
+          s[i] = opts.model(i)
+          return s
+        }, {}))
+      .prop({
+        _: opts,
+        onchange(){
+          this.dil = this.value
+        },
+        get(phrase){
+          let e = this
+          return new Promise((res, rej)=>{
+            e.ready.then(()=>{
+              var phr = Math.floor(phrase)
+              phrase = Math.round(phrase % 1 * 10)
+              if(e._.phr[phr]){
+                res(e._.phr[phr].split('=')[phrase])
+              }else{
+                rej()
+              }
   
-              })
             })
-          },
-          refresh(){
-            ('[phrase]').get().map(O.F.each('Lang'))
-          },
-          ready: new Promise(res=>{
-  
-            let i = setInterval(()=>{
-              let c = O.i18n._
-              if(c.r ? (c.r == c.ranges.length) : c.phr && Object.keys(c.phr).length){
-                clearInterval(i)
-                res(1)
-                O.i18n.dil = c.lang
-              }
-            }, 100)
           })
-        }).resp({
-          dil(dil){
-            this.View[dil].selected = true
-            O.Disk._lang = dil
-            O.ready.then(b=>b.Class('rtl', O.i18n._.rtl.indexOf(O.Disk._lang) == -1))
-            let e = this, c = e._, set = function(res){
-              c.lang = dil
-              O.Disk['_l' + c.lang + (this[1] || '') + e._.scope] = res
-              res = res.split('\n')
-              if(e._.map){res = res.map(e._.map)}
-              res.forEach(function(i, j){
-                c.phr[j + this] = i
-              }, this[0] || 1)
-              if(this[2] == 'net'){
-                var t = O.Disk._lTime || Array.from({length: c.ranges.length}).map(()=>0)
-                t[this[1]] = O.Time.now
-                O.Disk._lTime = t
-              }
-              c.r++
-              e.refresh()
+        },
+        refresh(){
+          ('[phrase]').get().map(O.F.each('Lang'))
+        },
+        ready: new Promise(res=>{
+  
+          let i = setInterval(()=>{
+            let c = O.i18n._
+            if(c.r ? (c.r == c.ranges.length) : c.phr && Object.keys(c.phr).length){
+              clearInterval(i)
+              res(1)
+              O.i18n.dil = c.lang
             }
+          }, 100)
+        })
+      }).resp({
+        dil(dil){
+          this.View[dil].selected = true
+          O.Disk._lang = dil
+          O.ready.then(b=>b.Class('rtl', O.i18n._.rtl.indexOf(O.Disk._lang) == -1))
+          let e = this, c = e._, set = function(res){
+            c.lang = dil
+            O.Disk['_l' + c.lang + (this[1] || '') + e._.scope] = res
+            res = res.split('\n')
+            if(e._.map){res = res.map(e._.map)}
+            res.forEach(function(i, j){
+              c.phr[j + this] = i
+            }, this[0] || 1)
+            if(this[2] == 'net'){
+              var t = O.Disk._lTime || Array.from({length: c.ranges.length}).map(()=>0)
+              t[this[1]] = O.Time.now
+              O.Disk._lTime = t
+            }
+            c.r++
             e.refresh()
-            c.phr = null
-            if(c.path){
-              var res
-              c.phr = {};
-              (c.ranges || [1]).forEach(function(i, j){
-                if(res = O.Disk['_l' + dil + (j || '') + e._.scope]){
-                  set.call([i, j], res)
-                }else{
-                  O.req(this.vars({lang: dil, part: j, scope: e._.scope})).then(set.bind([i, j, 'net']))
-                }
+          }
+          e.refresh()
+          c.phr = null
+          if(c.path){
+            var res
+            c.phr = {};
+            (c.ranges || [1]).forEach(function(i, j){
+              if(res = O.Disk['_l' + dil + (j || '') + e._.scope]){
+                set.call([i, j], res)
+              }else{
+                O.req(this.vars({lang: dil, part: j, scope: e._.scope})).then(set.bind([i, j, 'net']))
+              }
           
-              }, c.path)
-            }else{
-              c.lang = dil
-            }
+            }, c.path)
+          }else{
+            c.lang = dil
+          }
           //this.View[this.dil].selected=false;
       
-          }}).prop({dil: def})
+        }}).prop({dil: def})
   },
 
   toArray(obj){
@@ -794,7 +799,7 @@ var O, Otag = O = {
     Element: {
       V(path){
         return (path || '').split(':')
-            .reduce((s, i)=>s ? (i == '' ? s.View : (s.View[i] ? s.View[i] : null)) : null, this)
+          .reduce((s, i)=>s ? (i == '' ? s.View : (s.View[i] ? s.View[i] : null)) : null, this)
       },
       p(top){
         var s = this
@@ -909,6 +914,9 @@ var O, Otag = O = {
             a = a.replace(new RegExp('(\\b' + b + ')+'), '')
             return (r ? a : (a + ' ' + b)).replace(/\s{2}/g, ' ').trim()
           }, this.className)
+          if(this.className.trim() == ''){
+            this.removeAttribute('class')
+          }
         }
         return this
       },
@@ -1034,6 +1042,10 @@ var O, Otag = O = {
         return this.set(rep(t), rep(phr))
       },
       set(t, phr){
+        if(this.hasOwnProperty('value') || this.__lookupSetter__('value')){
+          this.value = t
+          return this
+        }
         if(t && !phr){
           let phrase
           if(phrase = this.attr('phrase')){
@@ -1185,11 +1197,15 @@ var O, Otag = O = {
       },
       init(){
         let s = this + '', d = O._selector(s)
+        d.args = d.args.concat(O.toArray(arguments))
         if(d.ui){
           if(!O.UI[d.ui]){console.log(d.ui, 'is not defined')}
-          d.el = O.UI[d.ui].apply(d.ui, d.args.concat(O.toArray(arguments)))
+          d.el = O.UI[d.ui].apply(d.ui, d.args )
         }else{
-          d.el = document.createElement(d.el || 'div')
+          d.el = document.createElement(d.tag || 'div')
+          if(d.args.length){
+            d.el.set.apply(d.el, d.args)
+          }
         }
         //Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
         d.el.Class(d.class).attr(d.attr)
@@ -1266,11 +1282,11 @@ var O, Otag = O = {
     },
     Function: {
       interval(time){
-        let interval,e=this 
+        let interval, e = this 
         return {
           start(){
             this.stop()
-            interval = setInterval.apply(null, [e,time].concat(arguments))
+            interval = setInterval.apply(null, [e, time].concat(arguments))
             return this
           },
           stop(){
@@ -1306,13 +1322,113 @@ var O, Otag = O = {
     },
     Image: {
       set(s){
-        this.loader=new Promise((res,rej)=>{
+        this.loader = new Promise((res, rej)=>{
           this.prop({
-          onload(){this.Class('loading', 1);res()},
-          onerror(){this.Class('loading', 1).Class('error');rej()}
-          , src: s})
+            onload(){this.Class('loading', 1);res()},
+            onerror(){this.Class('loading', 1).Class('error');rej()}
+            , src: s})
         })
         return this.Class('loading')
+      }
+    }
+  },
+  props: {
+    Element: {
+      el: {
+        get(){
+          return this.init()
+        },
+        set(){
+          let el = this.el
+          if(v.to){
+            v.to.get(0).append(el)
+            delete v.to
+          }
+          ['click'].forEach(i=>{
+            delete v[i]
+            if(v[i]){el['on' + i] = v[i]}
+          })
+            ['prop', 'has', 'layout', 'resp', 'set', 'attr', 'valid'].forEach(i=>{
+              if(v[i]){
+                el[i](v[i])
+                delete v[i]
+              }
+            })
+          Object.assign(el, v)
+        }
+      },
+      val: {
+        get(){
+          if(typeof this.value == 'function'){
+            return this.value()
+          }
+          else if(this.value || this.hasOwnProperty('value')){return this.value}
+          else if(this.View){
+            let d = {}, n = this, v
+            if(Object.keys(this.View).some(i => {
+              if(i[0] != '_' && !this.View[i].isSameNode(n)){
+                if(this._validator && (v = this._validator[i])){
+                  if(!(typeof v == 'function' ? v(this.View[i].val) : v.test(this.View[i].val))){
+                    if(this._invalid){
+                      this._invalid()
+                    }
+                    return true
+                  }
+                }
+                d[i] = this.View[i].val
+              }
+              return false
+            }, this)){
+              return null
+            }else{
+              return d
+            }
+          }
+          else{return this.data || null}
+        },
+        set(o){
+          if(o instanceof Promise){
+            let s = this
+            o.then(o => {
+              s.val = o
+            })
+          }
+          if(this.View){this.setView(o)}else{this.set(o)}}
+      }
+    },
+    Function: {
+      prevent: {
+        get(){
+          return e => {
+            e.preventDefault()
+            this(e)
+          }
+        }
+      },
+      stop: {
+        get(){
+          return e => {
+            e.stopPropagation()
+            this(e)
+          }
+        }
+      }
+    },
+    Image: {
+      value: {
+        get(){
+          return this.src
+        },
+        set(src){
+          this.loader = new Promise((res, rej)=>{
+            this.prop({
+              onload(){this.Class('loading', 1);res()},
+              onerror(){this.Class('loading', 1).Class('error');rej()}
+              , src})
+          })
+          this.Class('loading')
+          return src
+        }
       }
     }
   }
@@ -1330,14 +1446,15 @@ Otag.Model = {
   Default(i){
     var w = {}
     Object.keys(i)
-        .forEach(j => {
-          w[j] = j
-        })
+      .forEach(j => {
+        w[j] = j
+      })
     return 'defaultModel'.has(w).setView(i)
   }
 }
 
 Object.keys(O.proto).forEach(i => Object.assign(window[i].prototype || window[i], O.proto[i]))
+Object.keys(O.props).forEach(i => Object.defineProperties(window[i].prototype || window[i], O.props[i]))
 Object.keys(O.proto.Element).forEach(i=>{
   Number.prototype[i] = String.prototype[i] = function(){
     let j = this.init()
@@ -1345,69 +1462,4 @@ Object.keys(O.proto.Element).forEach(i=>{
   }
 })
 delete O.proto
-Object.defineProperties(Element.prototype, {
-
-  val: {
-    get(){
-      if(typeof this.value == 'function'){
-        return this.value()
-      }
-      else if(this.value || this.hasOwnProperty('value')){return this.value}
-      else if(this.View){
-        let d = {}, n = this, v
-        if(Object.keys(this.View).some(i => {
-          if(i[0] != '_' && !this.View[i].isSameNode(n)){
-            if(this._validator && (v = this._validator[i])){
-              if(!(typeof v == 'function' ? v(this.View[i].val) : v.test(this.View[i].val))){
-                if(this._invalid){
-                  this._invalid()
-                }
-                return true
-              }
-            }
-            d[i] = this.View[i].val
-          }
-          return false
-        }, this)){
-          return null
-        }else{
-          return d
-        }
-      }
-      else{return this.data || null}
-    },
-    set(o){
-      if(o instanceof Promise){
-        let s = this
-        o.then(o => {
-          s.val = o
-        })
-      }
-      if(this.View){this.setView(o)}else{this.set(o)}}
-  }
-})
-Object.defineProperties(Function.prototype, {
-  prevent:{
-    get(){
-      return e => {
-        e.preventDefault()
-        this(e)
-      }
-    }
-  },
-  stop:{
-    get(){
-      return e => {
-        e.stopPropagation()
-        this(e)
-      }
-    }
-  }
-})
-Object.defineProperties(Image.prototype, {
-  value:{
-    get(){
-      return this.src
-    }
-  }
-})
+delete O.props

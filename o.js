@@ -22,16 +22,14 @@ import Net from './lib/Net'
 import Nesne from 'nesne'
 import Disk from 'o.disk'
 
-DOM(global||window)
-
 let config = {
   req:{ep:'/ep₺'},
 }
 export {DOM,i18n,Time,Chain,Net,Page,Disk}
 export default class Otag {
   constructor (opts = {}){
-    Nesne.combine(config,opts)
-    Nesne.combine(this,{
+    Object.assign(config,opts)
+    Object.assign(this,{
       UI : {
         //'₺M:Model' yazımını sağlamak içindir,değiştirmeyin
         M:function (){
@@ -56,7 +54,6 @@ export default class Otag {
         })
       })
     })
-    
   }
   interval (){
     let interval,args = arguments
