@@ -2,45 +2,59 @@
   
 ### Otağ Çatı Çalışması
 
-Süreğen bir JavaScript çatısı olan Otağ, **öncelikle ön uç şablonlama**daki **yalınlık sorununu çözer**. 
+[![ES6][es6-image]][npm-url]
+[![NodeJS][nodejs-image]][npm-url]
+[![npm][npm-image]][npm-url]
+[![downloads][website-image]][website-url]
 
-Kodlarınızı **yalın**laştırırırken dolaylı olarak **sunucu yükü ve harcamalarınızı azaltır**. 
+[es6-image]: https://img.shields.io/badge/bileşen-ES6-brown.svg?style=flat
+[npm-url]: https://npmjs.org/package/otag
+[nodejs-image]:https://img.shields.io/badge/bileşen-NodeJS-green.svg?style=flat
+[npm-image]: https://img.shields.io/npm/v/otag.svg
+[website-image]: https://img.shields.io/website-up-down-green-red/https/otagjs.org.svg?label=otagjs.org
+[website-url]: https://otagjs.org
+
+Süreğen bir JavaScript çatısı olan [Otağ](https://otagjs.org), öncelikle **ön uç şablonlama**daki **yalınlık sorununu çözer**. 
+
+Kodlarınızı **yalın**laştırırırken, **sunucu yükü ve harcamalarınızı azaltır**. 
 
 **Soyutlamalar**, özel yapılar, **kolay Model/View Tanımı** ve **veri birleştirmeleri**yle, **büyük ölçekli** tasarılarınızda **kod bütünlüğünüzü** korur.
 
 #### İlkeler
+
 Otağ Çatı çalışması temel ilkeleri şunlardır:
 
-* JavaScript prototip tabanlı olduğu için yöntemleri olabildiğince prototip olarak yazmak
-* Ön yüz(Frontend) DOM ögelerinden oluştuğu için Otağ Bileşenlerini DOM ekseninde yazmak
-* İstemci cihazını etkin kullanarak sunucu yükünü azaltırken kod kalitesi ve verimliliğe dikkat ederek aygıt pil ömrünü korumak
+* Yalınlık
+* JavaScript uzantı tabanlı olduğu için yöntemleri olabildiğince uzantı olarak yazmak
+* İstemciyi etkin kullanarak sunucu yükünü azaltırken.
+* [Yiv ölçünleri](https://gitlab.com/Otag/eslint-config-otag)(Kod kalitesi)ne özen göstermek 
+* Bellek yönetimine özen göstermek
 * Zengin bileşenleri tek biçimlilik ile yalınlaştırmak
-* Bileşen(UI) ve Biçimler(Model) dahil **[Tamga](https://github.com/ilgilenio/Tamga)** yazımını kullanmak
-* Yalınlık ve başarımı bir arada sağlamak
-* En gerekli ve temel özellikleri barındırmak
+* **[Tamga](https://github.com/ilgilenio/Tamga)** yazımını kullanmak
+
+- - - -
 
 #### Sürüm
-Sürümleri ve etkinlikleri [takip edin 📆](https://ilgilenio.github.io/Otag/cizelge/)
+Sürümleri ve etkinlikleri [izleyin 📆](https://ilgilenio.github.io/Otag/cizelge/)
 
-1.3
-
-[otag.js](https://ilgilenio.github.io/Otag/otag.1.3.js) (Geliştirme, Bol açıklamalı)
-
-[otag.min.js](https://ilgilenio.github.io/Otag/otag.1.3.min.js) (**19.54KB**, _6.6kb GZIP_)
-
+2.0
+[otag.js](https://cdn.jsdelivr.net/npm/otag@2.0.0/dist/o.min.js)
+[otag.min.js](https://cdn.jsdelivr.net/npm/otag@2.0.0/dist/o.min.js) (**13.9KB**, _5.3kb GZIP_)
 
 #### Belgelendirme
-[Github Wiki](https://github.com/ilgilenio/Otag/wiki)
+| | |||
+|-|-|-|-|
+| [Türkçe](https://belge.otagjs.org/tr/) | [İngilizce](https://belge.otagjs.org/en/) | [GitHub Wiki](https://github.com/ilgilenio/Otag/wiki) | [GitLab Wiki](https://gitlab.com/ilgilenio/Otag/wikis) |
 
-[GitLab Wiki](https://gitlab.com/ilgilenio/Otag/wikis) (Buraya taşınması sürüyor)
+#### Yeterge
 
-[OtagJS ORG](https://otagjs.org/#/belge)
+MIT Yetergesi ile dağıtılmaktadır.
 
-#### Destek
-GitLab üzerinde sorun(issue) [bildirebilirsiniz](https://gitlab.com/ilgilenio/Otag/issues).
+- - - -
 
-#### Lisans
-MIT Lisansı ile korunmaktadır.
+#### Yardım
+
+GitLab üzerinde sorun [bildirebilirsiniz](https://gitlab.com/Otag/Otag/issues). Bunun yanında Telegram takımımıza yazabilirsiniz.
 
 #### Katılım sağlama
 ♥ Tasarının geliştirilmesi için bunları göz önünde bulundurularak katkı sağlayabilirsiniz.
@@ -48,9 +62,7 @@ MIT Lisansı ile korunmaktadır.
 #### İletişim
 İşbirlikleri ve daha fazlası için <a href="mailto:bilgi@otagjs.org">bilgi@otagjs.org</a> bulunağına ileti gönderebilirsiniz.
 
-[Tasarı gözlem yazıtımız](https://tree.taiga.io/project/ilgilenio-otag/kanban)'a gözatın
+
 <a href="https://otagjs.org" title="Otağ'a ilerle">
     <img src="https://ilgilenio.github.io/Otag/img/otag.tengri.png" alt="Otağ, Tengri Dağı">
   </a>
-
-
