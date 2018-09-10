@@ -3,32 +3,64 @@ export default [
   {
     input: './o.js',
     output: {
-      file: './dist/o.js',
-      format: 'cjs'
+      file: './dist/otag.js',
+      format: 'umd',
+      name: 'O'
     },
-    plugins:[
-      terser()
-    ]
+    env: 'development'
   },
   {
-    input: './lib/DOM.js',
+    input: './o.js',
     output: {
-      file: './dist/lib/DOM.js',
-      format: 'esm'
+      file: './dist/otag.cjs.js',
+      format: 'cjs',
+      name: 'O'
     },
-    plugins:[
-      terser()
-    ]
+    plugins: [terser()]
   },
   {
-    input: './lib/Page.js',
+    input: './o.js',
     output: {
-      file: './dist/lib/Page.js',
-      format: 'esm'
+      file: './dist/otag.esm.js',
+      format: 'esm',
+      name: 'O'
     },
-    plugins:[
-      terser()
-    ]
+    plugins: [terser()]
+  },
+  {
+    input: './www/uygulama.js',
+    output: {
+      file: './www/yay/uygu.js',
+      format: 'umd',
+      name: 'Uygu'
+    },
+    env: 'development'
+  },
+  {
+    input: './lib/Chain.js',
+    output: {
+      file: './dist/lib/Chain.js',
+      format: 'umd',
+      name: 'Chain'
+    },
+    env: 'development'
+  },
+  {
+    input: './lib/Time.js',
+    output: {
+      file: './dist/lib/Time.js',
+      format: 'umd',
+      name: 'Time'
+    },
+    env: 'development'
+  },
+  {
+    input: './lib/Chain.js',
+    output: {
+      file: './dist/lib/Chain.js',
+      format: 'umd',
+      name: 'Chain'
+    },
+    env: 'development'
   }
-    
 ]

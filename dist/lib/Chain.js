@@ -1,37 +1,27 @@
-"use strict";
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.Chain = factory());
+}(this, (function () { 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+  let Chain = function(f) {
+    let obj = this || null;
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+    return function() {
+      let args = arguments;
+      obj = this || obj;
 
-/*
-    let chain=O.Chain([f(),g(),h()]);
-    chain(ilkİşleveGirdiler).then(başarı).catch(başarısız);
-
-    f   : işlevler Dizisi
-    obj : this olacak Nesne
-
-    Birinin çıktısı bir sonrakinin girdisi olacak şekilde işlevleri sırayla çağırır. 
-    Zincir tamamlanınca çözülecek bir Söz döndürür.
-  */
-var Chain = function Chain(f) {
-  _classCallCheck(this, Chain);
-
-  var obj = this || null;
-  return function () {
-    var args = arguments;
-    obj = this || obj;
-    return new Promise(function (res, rej) {
-      var prom = f.shift().prom().apply(obj, args),
-          i;
-      while (i = f.shift()) {
-        prom = prom.then(i).catch(rej);
-      }
-      prom.then(res).catch(rej);
-    });
+      return new Promise(function(res, rej) {
+        let prom = f.shift().prom()
+            .apply(obj, args), i;
+        while(i = f.shift()) {
+          prom = prom.then(i).catch(rej);
+        }
+        prom.then(res).catch(rej);
+      })
+    }
   };
-};
 
-exports.default = Chain;
+  return Chain;
+
+})));
