@@ -5,8 +5,8 @@
 }(this, (function () { 'use strict';
 
   let Time = new Proxy({
-    interval() {
-      let interval, args = arguments;
+    interval(...args) {
+      let interval;
       return {
         start() {
           this.stop();

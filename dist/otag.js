@@ -1,5 +1,5 @@
 /*
- *           ██████████             /* 2017 - 2018 ⊕ Otağ 2.0.0
+ *           ██████████             /* 2017 - 2018 ⊕ Otağ 2.1.0
  *        █████      █████
  *      ████     ██     ████
  *    ███        ██        ███       .8888888.    dP              88b
@@ -13,417 +13,14 @@
  *                                                                 
  */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.O = {})));
-}(this, (function (exports) { 'use strict';
-
-  let _selector = function(s) {
-    let args = [];
-    let attrRegex = /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9,'.-_şŞüÜöÖçÇİığĞ#\(\):@ ]+)"\]/g;
-    let attr = (s.match(attrRegex) || []).reduce((attr, i) => {
-      s = s.replace(i, '');
-      i = i.match(/([0-9A-Za-z.şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9,.-_şŞüÜöÖçÇİığĞ#\(\):@ ]+)/);
-      attr[i[1]] = i[2];
-      return attr
-    }, {});
-    if(s.indexOf(':') > -1) {
-      args = s.split(':');
-      s = args.shift();
-    }
-    var d = {
-      class: /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
-      id: /#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
-      ui: /[$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
-      tag: /^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g
-    };
-    d = Object.keys(d).reduce((o, i) => {
-      var rm = [], e, x = -1, r = d[i];
-      while((e = r.exec(s)) && r.lastIndex != x) {
-        rm.push(e[0]);
-        x = r.lastIndex;
-
-        if(o[i] instanceof Array) {
-          o[i].push(e[1]);
-        }else{
-          o[i] = e[1] || e[0];
-          s = s.replace(e[0], '');
-          break
-        }
-      }
-      rm.forEach(i => {
-        s = s.replace(i, '');
-      });
-      return o
-    }, {class: [], id: '', ui: null, tag: null});
-    d.args = args;
-    d.attr = attr;
-    if(s.length) {
-      d.class = d.class.concat(s.split(' '));
-    }
-    return d
-  };
-  let proto = {
-    Element: {
-      destroy(after = 0, dur = 300) {
-        return new Promise(res => {
-          setTimeout(() => {
-            setTimeout(() => { this.remove(); res(); }, dur);
-            this.Class('destroy');
-          }, after);
-        })
-      },
-      disp(bool) {
-        if(!bool && !this.hasOwnProperty('dispState')) {
-          this.dispState = this.style.display;
-        }
-        this.style.display = bool ? this.dispState : 'none';
-        return this
-      },
-      class(c) {
-        if(typeof c == 'function') {
-          this.class(c());
-        }else{
-          let list = {add: [], rem: []};
-          Object.keys(c).forEach(f => {
-            list[(typeof c[f] === 'function' ? c[f]() : c[f]) ? 'add' : 'rem'].push(f);
-          });
-          this.Class(list.rem, 0).Class(list.add);
-        }
-        return this
-      },
-      Class(name, r = true) {
-        if(!(name instanceof Array)) {
-          name = [name];
-        }
-        if(name[0] && name[0] != '') {
-          this.className = name.reduce((a, b) => {
-            a = a.replace(new RegExp('(\\b' + b + ')+'), '');
-            return (r ? (a + ' ' + b) : a).replace(/\s{2}/g, ' ').trim()
-          }, this.className);
-
-          if(this.className.trim() == '') {
-            this.removeAttribute('class');
-          }
-        }
-        return this
-      },
-      do(method, on = 'click', args) {
-        if(arguments[3]) {
-          args = O$1.toArray(arguments).splice(2);
-        }
-        this['on' + on] = () => {
-          this.parent[method].apply(this.parent, args || []);
-        };
-        return this
-      },
-      append(elems, reverse) {
-        if(elems) {
-          if(!(elems instanceof Array)) {
-            elems = [elems];
-          }
-          if(reverse) {
-            elems = elems.reverse();
-          }
-
-          elems.forEach(i => this.appendChild(i.el));
-        }
-        return this
-      },
-      set(str) {
-        if(typeof (str) == 'string') {
-          this.innerHTML = str.replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            .replace(/"/g, '&quot;');
-        }
-        return this
-      },
-      pitch(e) {
-        if(e.html) {
-          this.innerHTML = Disk[e.html];
-        }
-        this.innerHTML = '';
-        return e ? this.append.apply(this, arguments) : this
-      }
-    },
-    String: {
-      kur(otag = {}) {
-        return new Sanal$$1(Object.assign(otag, {_el: this}))
-      },
-      get(index) {
-        var th = O$1.toArray(document.querySelectorAll(this));
-
-        if(this.indexOf('#') > -1) {
-          index = 0;
-        }
-        if(index != null) {
-          th = th[index];
-        }
-        return th
-      },
-      val(obj) {
-        let r = this.split(',').map(i => { return obj.val[i] });
-        return r.length == 1 ? r[0] : r
-      },
-      vars(vars) {
-        vars = typeof vars == 'object' ? vars : arguments;
-        return Object.keys(vars).reduce((m, v) => {
-          return m.replace(new RegExp('(' + v + '[₺|$|₸|₼])+'), vars[v])
-        }, this)
-      },
-      replaceAll(f, r) {
-        let s = this;
-        for(var i in f) {
-          while(s.indexOf(f[i]) > -1) {
-            s = s.replace(f[i], r[i]);
-          }
-        }
-        return s
-      },
-      of(obj) {
-        return this == '*' ? obj : this.split(',').reduce((o, i) => { o[i] = obj[i] || null; return o }, {})
-      },
-      from(obj) {
-        let r = (this == '*' ? Object.keys(obj) : this.split(',')).map(i => obj[i]);
-        return (this.indexOf(',') == -1 && this != '*') ? r[0] : r
-      },
-      obj(arr, def) {
-        return this.split(',').reduce(
-          def instanceof Array
-            ? (n, i, j) => {
-              n[i] = arr[j] || def[j];
-              return n
-            }
-            : (n, i, j) => {
-              n[i] = arr[j] || def;
-              return n
-            }
-          , {})
-      }
-    },
-    Function: {
-      interval(time) {
-        let interval, e = this;
-        return {
-          start() {
-            this.stop();
-            interval = setInterval.apply(null, [e, time].concat(arguments));
-            return this
-          },
-          stop() {
-            clearInterval(interval);
-            return this
-          }
-        }
-      },
-      prom(bind) {
-        let f = this.bind(bind);
-        return function() {
-          let a = arguments;
-          return new Promise((res, rej) => {
-            try{
-              var r = f.apply(null, a);
-              if(r.then) { r.then(res).catch(rej); }else(res(r));
-            }catch(e) {
-              rej(e);
-            }
-          })
-        }
-      },
-      debounce(delay) {
-        let f = this;
-        let tOut;
-        return function() {
-          let a = arguments;
-          clearTimeout(tOut);
-          tOut = setTimeout(() => { f.apply(f, a); }, delay);
-          return this
-        }
-      }
-    },
-    SVGElement: {
-      set(src, height, width) {
-        this.disp(0);
-        O$1.req(src).then(i => {
-          let tmp = (new DOMParser()).parseFromString(i, 'text/xml').children[0];
-          O$1.toArray(tmp.attributes).forEach(attr =>
-            this.setAttribute(attr.name, attr.value)
-          );
-          this.style.height = height;
-          this.style.width = width;
-          this.innerHTML = tmp.innerHTML;
-          this.disp(1);
-        });
-        return this
-      }
-    },
-    Image: {
-      set(s, svg) {
-        if(svg) {
-          O$1.req(s).then(i => this.innerHTML = i);
-          return this
-        }
-        this.loader = new Promise((res, rej) => {
-          Object.assign(this, {
-            onload() {
-              this.Class('loading', 0);
-              res();
-            },
-            onerror() {
-              this.Class('loading', 0).Class('error'); rej();
-            },
-            src: s});
-        });
-        return this.Class('loading')
-      }
-    }
-  };
-  let props = {
-    String: {
-      to: {
-        set(value) {
-          this.el.to = value;
-        }
-      },
-      el: {
-        get() {
-          let d = _selector(this + ''), el;
-          if(d.ui) {
-            if(!O$1.UI[d.ui]) { console.error(d.ui, 'is not defined'); }
-            el = O$1.UI[d.ui].apply(d.ui, d.args);
-          }else{
-            el = d.tag == 'svg' ? document.createElementNS('http://www.w3.org/2000/svg', 'svg') : document.createElement(d.tag || 'div');
-            if(d.args.length) {
-              el.set.apply(el, d.args);
-            }
-          }
-          // Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
-          Object.keys(d.attr).map(attr => el.setAttribute(attr, d.attr[attr]));
-          if(d.id.length) {
-            el.id = d.id;
-          }
-          if(d.class.length) {
-            el.className = d.class.join(' ');
-          }
-          return el
-        },
-        set(v) {
-          let el = this.el;
-
-          ['click', 'load'].forEach(i => {
-            delete v[i];
-            if(v[i]) { el['on' + i] = v[i]; }
-          });
-
-          ['prop', 'has', 'layout', 'resp', 'set', 'attr', 'valid'].forEach(i => {
-            if(v.hasOwnProperty()) {
-              el[i](v[i]);
-              delete v[i];
-            }
-          });
-          if(v.to) {
-            if(typeof v.to == 'string') {
-              v.to.append(el);
-            }else{
-              el.to = v.to;
-            }
-            delete v.to;
-          }
-          Object.assign(el, v);
-          return el
-        }
-      }
-    },
-    Element: {
-      el: {
-        get() { return this }
-      },
-      str: {
-        get() {
-          let ext = ['id', 'class'];
-          let str = this.tagName != 'DIV' ? this.tagName.toLowerCase() : '';
-          str += (this.id != '' ? '#' + this.id : '');
-          str += O$1.toArray(this.classList).map(i => '.' + i)
-            .join('');
-          O$1.toArray(this.attributes).forEach((i) => {
-            if(ext.indexOf(i.name) < 0) {
-              i.value = i.value.replace('https:', '').replace('http:', '');
-              str += '[' + i.name + '="' + i.value + '"]';
-            }
-          });
-          return str
-        }
-      },
-      to: {
-        set(toElem) {
-          if(typeof (toElem) == 'string') {
-            O$1.ready.then(() => {
-              toElem.get(0).pitch(this);
-            });
-          }else{
-            if(toElem instanceof Sanal$$1) { toElem = toElem.el; }
-            toElem.pitch(this);
-          }
-        }
-      }
-    },
-    Function: {
-      prevent: {
-        get() {
-          return e => {
-            e.preventDefault();
-            this(e);
-          }
-        }
-      },
-      stop: {
-        get() {
-          return e => {
-            e.stopPropagation();
-            this(e);
-          }
-        }
-      },
-      bounced: {
-        get() {
-          return this.debounce(100)
-        }
-      }
-    },
-    Image: {
-      value: {
-        get() {
-          return this.src
-        },
-        set(src) {
-          this.loader = new Promise((res, rej) => {
-            this.prop({
-              onload() { this.Class('loading', 0); res(); },
-              onerror() { this.Class('loading', 0).Class('error'); rej(); },
-              src});
-          });
-          this.Class('loading');
-          return src
-        }
-      }
-    }
-  };
-
-  (root => {
-    Object.keys(proto).filter(i => root[i].prototype || root[i])
-      .forEach(i => Object.assign(root[i].prototype || root[i], proto[i]));
-    Object.keys(props).filter(i => root[i].prototype || root[i])
-      .forEach(i => Object.defineProperties(root[i].prototype || root[i], props[i]));
-    Object.keys(proto.Element).forEach(i => {
-      root.Number.prototype[i] = root.String.prototype[i] = function() {
-        let j = this.kur();
-        return j[i].apply(j, arguments)
-      };
-    });
-  })(window || global);
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.O = factory());
+}(this, (function () { 'use strict';
 
   let Time = new Proxy({
-    interval() {
-      let interval, args = arguments;
+    interval(...args) {
+      let interval;
       return {
         start() {
           this.stop();
@@ -456,11 +53,10 @@
   let Chain = function(f) {
     let obj = this || null;
 
-    return function() {
-      let args = arguments;
+    return function(...args) {
       obj = this || obj;
 
-      return new Promise(function(res, rej) {
+      return new Promise((res, rej) => {
         let prom = f.shift().prom()
             .apply(obj, args), i;
         while(i = f.shift()) {
@@ -470,6 +66,65 @@
       })
     }
   };
+
+  let now = () => Math.floor(+new Date() / 1000);
+  let Disk = new Proxy({
+    expire: new Proxy({}, {
+      set(o, k, v) {
+        k = Disk.ƒscope ? (Disk.ƒscope + '_' + k) : k;
+        localStorage.setItem(k + ':expire', now() + Number(v));
+        return true
+      }
+    }),
+    rem: k => {
+      if(typeof k == 'string') { k = [k]; }
+      if(typeof Disk.ƒscope == 'string') {
+        k = k.map(i => Disk.ƒscope + '_' + i);
+      }
+      k.forEach(i => {
+        localStorage.removeItem(i);
+      });
+    }
+  }, {
+    get: (o, k) => {
+      if(o[k]) { return o[k] }
+      let e;
+      k = o.ƒscope ? o.ƒscope + '_' + k : k;
+      if(e = localStorage.getItem(k + ':expire')) {
+        if(Number(e) < now()) {
+          localStorage.removeItem(k);
+          return null
+        }
+      }
+      k = localStorage.getItem(k);
+      try{
+        return JSON.parse(k)
+      } catch(Exception) {
+        return k
+      }
+    },
+    set: (o, k, v) => {
+      if(k == 'ƒscope') {
+        o.ƒscope = v;
+        return true
+      }
+      k = o.ƒscope ? o.ƒscope + '_' + k : k;
+
+      localStorage.setItem(k, JSON.stringify(v));
+      return true
+    },
+    deleteProperty: (o, k) => {
+      k = o.ƒscope ? o.ƒscope + '_' + k : k;
+
+      localStorage.removeItem(k);
+      return true
+    },
+    has: (o, k) => {
+      k = o.ƒscope ? o.ƒscope + '_' + k : k;
+
+      return !!localStorage[k]
+    }
+  });
 
   class Sanal$$1 {
     constructor(o = {_el: ''}) {
@@ -489,10 +144,10 @@
         Object.defineProperties(this,
           Object.keys(o.resp).reduce((p, r) => {
             p[r] = {
-              get: ()=>this['_'+r],
-              set(v){
+              get: () => this['_' + r],
+              set(v) {
                 o.resp[r](v);
-                this['_'+r]=v;
+                this['_' + r] = v;
               }
             };
             return p
@@ -519,10 +174,17 @@
       if(View) {
         Object.keys(View).forEach(i => {
           if(typeof View[i] == 'string') {
-            View[i] = new Sanal$$1({_el: View[i],parent:this});
-          } else if(!(View[i] instanceof Sanal$$1)) {
-            View[i].parent=this;
+            if(View[i][0] == '₺') {
+              View[i] = View[i].el;
+            }else{
+              View[i] = new Sanal$$1({_el: View[i], parent: this});
+            }
+          }
+          if(!(View[i] instanceof Sanal$$1)) {
+            View[i].parent = this;
             View[i] = new Sanal$$1(View[i]);
+          }else{
+            View[i].parent = this;
           }
         });
         this.View = View;
@@ -571,6 +233,7 @@
         o.then(val => {
           this.value = val;
         });
+        return
       }
       if(this.bind) {
         let content = [];
@@ -579,7 +242,9 @@
         }
         content = content.concat(Object.keys(o).map(i => {
           let obj = this.bind.model.el;
-          obj.value = {key: i, value: o[i], _model: this.bind.model};
+          if(obj.source) { obj.oid = o[i]; }else{
+            obj.value = {key: i, value: o[i], _model: this.bind.model};
+          }
           return obj
         }));
         if(this.bind.after) {
@@ -589,7 +254,8 @@
       }else
       if(this.View) {
         if(o._model) { o = o.value; }
-        Object.keys(o).forEach(i => {
+        let k = Object.keys(o);
+        k.forEach(i => {
           if(this.View[i]) {
             if(typeof this.View[i] == 'string') {
               this.View[i] = this.View[i].split(':').shift() + ':' + o[i];
@@ -598,11 +264,22 @@
             }
           }
         });
+        // for hidden calculated values
+        Object.keys(this.View)
+          .filter(v => k.indexOf(v) == -1)
+          .forEach(i => {
+            if(i in o) {
+              this.View[i].value = o[i];
+            }
+          });
       }else if(this.el.set) {
         this.el.set(o);
       }
       if(this.set) {
         this.set(o);
+      }
+      if(this.change) {
+        this.change();
       }
     }
     get el() {
@@ -614,30 +291,64 @@
         }else if(this.content) {
           this._el.append(this.content);
         }else if(this.View) {
-          this._el.append(O$1.toArray(this.View));
+          this._el.append(
+            Object
+              .keys(this.View)
+              .map(i => this.View[i])
+          );
         }
         if(typeof this.bind == 'string') {
           this.bind = {model: this.bind};
         }
+        let oid = 'NULLOID';
+        if(this.source) {
+          if('oid' in this) { oid = this.oid; }
+          Object.defineProperty(this, 'oid', {
+            get: () => this._oid,
+            set: (oid) => {
+              (this._oid = oid);
+              this.value = this.source[oid];
+            }
+          });
+        }
         if(this.fetch) {
-          let data;
-          if(this.fetch.save && (data = Disk[this.fetch.save])) {
-            this.value = data;
-          }else{
-            O$1.req(this.fetch.from).then(r => {
-              if(this.fetch.shape) {
-                r = this.fetch.shape(r);
-              }
-              this.value = r;
-              if(this.fetch.save) {
-                Disk[this.fetch.save] = r;
-              }
-            });
-          }
+          this.fetcher = this.fetch;
         }
         ['click', 'load', 'select'].filter(i => this[i]).forEach(i => this._el['on' + i] = this[i]);
+        if(this.enter) {
+          this._el.addEventListener('keyup', (e => { if(e.keyCode == 13) { this[this.enter](e.target.value); } }).prevent.stop);
+        }
+        if(oid != 'NULLOID') {
+          this.oid = oid;
+        }
       }
       return this._el
+    }
+    set fetcher(f) {
+      clearInterval(this._fetchInterval);
+      let fetch = () => {
+        O$1.req(f.from).then(r => {
+          if(f.shape) {
+            r = f.shape(r);
+          }
+          this.value = r;
+          if(f.save) {
+            Disk[f.save] = r;
+            if(f.expire) {
+              Disk.expire[f.save] = f.expire;
+            }
+          }
+        });
+      };
+      let data;
+      if(f.save && (data = Disk[f.save])) {
+        this.value = data;
+      }else{
+        fetch();
+      }
+      if(f.refresh) {
+        this._fetchInterval = setInterval(fetch, f.refresh * 1e3);
+      }
     }
     set layout(t) {
       this.el.innerHTML = '';
@@ -647,20 +358,37 @@
 
         if(ln = dis.length) {
           gir2 = (line.length - ln) / 2;
-          if(V && V[dis]) { dis = V[dis].el; }else if(dis[0] == ':') {
+          if(V && this.V(dis)) { dis = this.V(dis).el; } else
+          if(dis[0] == ':') {
             if(last instanceof Text && gir == gir2) {
-              last.data += '<br>' + dis.substring(1).trimLeft();
-              return
+              branch.appendChild(document.createElement('br'));
+              /* last.data += '<br>' + dis.substring(1).trimLeft()
+              return */
             }
             dis = document.createTextNode(dis.substring(1).trimLeft());
           }else{
             dis = dis.el;
+            let ev = ['click', 'select', 'focus', 'select'];
+            [...dis.attributes].forEach(i => {
+              if(ev.indexOf(i.name) > -1) {
+                dis['on' + i.name] = (e => this[i.value](e)).stop.prevent;
+              }else
+              if(i.name == 'enter') {
+                dis.addEventListener('keyup', (e => { console.log(e, e.keyCode); if(e.keyCode == 13) { this[i.value](e.target.value); } }).prevent.stop);
+              }
+            });
           }
 
           if(gir != null) {
             if(gir2 != gir) {
-              branch = gir2 > gir ? last : branch.p;
+              branch = last;
+              for(let i = gir2 - 1; i < gir; i++) {
+                branch = branch.p;
+              }
             }
+          }
+          if(dis instanceof Sanal$$1) {
+            dis = dis.el;
           }
           branch.appendChild(dis);
           last = dis;
@@ -680,7 +408,7 @@
       p:Aradığınız bet bulunamadı`
   };
 
-  class Page$$1 {
+  class Page {
     constructor(opts = {}) {
       opts = Object.assign({
         routes: {},
@@ -690,6 +418,7 @@
 
       opts.routes.none = opts.none;
       this.handler = opts.handler;
+      this.title = opts.title;
       let route = this.routes = opts.routes;
       Object.keys(route).filter(r => typeof (route[r]) != 'string')
         .map(r => {
@@ -705,23 +434,27 @@
               return route[r]._name
             },
             set: (name) => {
-              this.title(name);
+              this.setTitle(name);
               this.Nav.value = {[r]: name};
               route[r]._name = name;
             }
           });
           return route[r]
         });
-      O$1.ready.then(() => {
-        this.route();
-        window.onpopstate = this.route.bind(this);
-      });
+
+      this.route();
+      window.onpopstate = this.route.bind(this);
     }
-    title(title) {
-      if(this._title) {
-        title = this._title.vars({title});
-      }
-      document.title = title;
+    setTitle(title) {
+      this._titleInfo = title = title || this._titleInfo;
+      document.title = this.title;
+    }
+    get title() {
+      return (this._title || 'title₺').vars({title: this._titleInfo})
+    }
+    set title(title) {
+      this._title = title;
+      this.setTitle(title);
     }
     route(hash) {
       let push = 0;
@@ -747,21 +480,19 @@
       if(typeof r == 'function') { r.apply(null, h); }
       if(r instanceof Sanal$$1) {
         let pageChanged = this.page != page;
+        if(this.change) {
+          this.change(page, h, pageChanged, !!r.once);
+        }
         this.page = page;
         if(this.handler) {
-          let handle = r => {
-            if(this.handler.handle) {
-              this.handler.handle(r, pageChanged);
-            }else if(pageChanged) {
-              this.handler.pitch(r);
-            }
-          };
           if(typeof this.handler == 'function') {
             this.handler(r);
           }else if(typeof this.handler == 'string') {
             r.to = this.handler;
+          }else if(this.handler.handle) {
+            this.handler.handle(r, pageChanged);
           }else{
-            handle(r);
+            r.to = this.handler;
           }
         }
         if(r.once) {
@@ -782,9 +513,8 @@
       opts.hide.push('none');
       let el = this.Nav = 'Nav'.kur({
         View: Object.keys(this.routes).filter(i => (typeof (this.routes[i]) != 'string') && (opts.hide.indexOf(i) == -1))
-          .reduce((o, i) => { o[i] = 'a[href="/#/' + i + '"]'; return o }, {})
+          .reduce((o, i) => { o[i] = 'a[href="/#/' + i + '"][title="' + this.routes[i].name + '"]:' + this.routes[i].name; return o }, {})
       });
-      el.value = Object.keys(el.View).reduce((o, i) => { o[i] = this.routes[i].name; return o }, {});
       return el
     }
     set page(page) {
@@ -802,11 +532,14 @@
         this.now.idle();
       }
       let {name} = now;
-      this.title(name);
+      this.setTitle(name);
       this._now = now;
     }
     get now() {
       return this._now
+    }
+    set to(handler) {
+      this.handler = handler;
     }
   }
 
@@ -916,7 +649,7 @@
           }
         }
       };
-      XHR.send(data ? O._queryString(data) : '');
+      XHR.send(data ? _queryString(data) : '');
     })
   }
 
@@ -932,46 +665,6 @@
     return str.join('&')
   };
 
-  let Disk = new Proxy({
-    expire: function(key, time) {
-      Disk[key + ':expire'] = Math.floor(+new Date() / 1000) + Number(time);
-    },
-    rem: k => {
-      if(typeof k == 'string') { k = [k]; }
-      k.forEach(i => {
-        localStorage.removeItem(i);
-      });
-    }
-  }, {
-    get: (o, k) => {
-      if(o[k]) { return o[k] }
-      let e;
-      if(e = localStorage.getItem(k + ':expire')) {
-        if(Number(e) < Math.floor(+new Date() / 1000)) {
-          delete Disk[k];
-          return null
-        }
-      }
-      k = localStorage.getItem(k);
-      try{
-        return JSON.parse(k)
-      } catch(Exception) {
-        return k
-      }
-    },
-    set: (o, k, v) => {
-      localStorage.setItem(k, JSON.stringify(v));
-      return true
-    },
-    deleteProperty: (o, k) => {
-      localStorage.removeItem(k);
-      return true
-    },
-    has: (o, k) => {
-      return !!localStorage[k]
-    }
-  });
-
   let O$1 = {
     require(js, path = '') {
       return Tor.req(path + js + '.js').then(code => {
@@ -984,19 +677,28 @@
       if(!this[cls]) {
         this[cls] = {};
       }
-      Object.keys(methods).forEach((i) => {
-        this[cls][i] = methods[i];
-      });
+      Object.keys(methods).forEach(i => this[cls][i] = methods[i]);
+    },
+    calc: (obj, features) => {
+      Object.defineProperties(
+        obj,
+        Object
+          .keys(features)
+          .reduce((o, f) => {
+            o[f] = {
+              get: features[f].bind(obj),
+              set: (v) => console.error(f, 'için değer ataması yapılamaz.')
+            };
+            return o
+          }, {})
+      );
+      return obj
     },
     UI: {
-      M() {
-        let a = O$1.toArray(arguments);
-        return O$1.Model[a.shift()].apply('', a)
-      }
+      M: (...args) => O$1.Model[args.shift()].apply('', args)
     },
     req: Tor.req,
     Model: {},
-    toArray: o => Object.keys(o).map(i => o[i]),
     ready: new Promise((res) => {
       document.addEventListener('DOMContentLoaded', () => {
         let {body, head} = document;
@@ -1005,15 +707,477 @@
     })
   };
 
-  exports.default = O$1;
-  exports.Time = Time;
-  exports.Chain = Chain;
-  exports.Tor = Tor;
-  exports.Page = Page$$1;
-  exports.Disk = Disk;
-  exports.Sanal = Sanal$$1;
-  exports.O = O$1;
+  let _selector = s => {
+    let args = [];
+    let attrRegex = /\[([0-9A-Za-z.-_şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9,'.-_şŞüÜöÖçÇİığĞ#\(\):@ ]+)"\]/g;
+    let attr = (s.match(attrRegex) || []).reduce((attr, i) => {
+      s = s.replace(i, '');
+      i = i.match(/([0-9A-Za-z.şŞüÜöÖçÇİığĞ]+)="([0-9A-Za-z0-9,.-_şŞüÜöÖçÇİığĞ#\(\):@ ]+)/);
+      attr[i[1]] = i[2];
+      return attr
+    }, {});
+    if(s.indexOf(':') > -1) {
+      args = s.split(':');
+      s = args.shift();
+    }
+    var d = {
+      class: /\.([0-9A-Za-z_\-şŞüÜöÖçÇİığĞ]+)/g,
+      id: /#([0-9A-Za-z\-_şŞüÜöÖçÇİığĞ]+)/,
+      ui: /[$|₺|₸|₼]([0-9A-Za-zşŞüÜöÖçÇİığĞ]+)/,
+      tag: /^[a-zşüöçığ][a-zşüöçığ0-9]*?$/g
+    };
+    d = Object.keys(d).reduce((o, i) => {
+      var rm = [], e, x = -1, r = d[i];
+      while((e = r.exec(s)) && r.lastIndex != x) {
+        rm.push(e[0]);
+        x = r.lastIndex;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
+        if(o[i] instanceof Array) {
+          o[i].push(e[1]);
+        }else{
+          o[i] = e[1] || e[0];
+          s = s.replace(e[0], '');
+          break
+        }
+      }
+      rm.forEach(i => {
+        s = s.replace(i, '');
+      });
+      return o
+    }, {class: [], id: '', ui: null, tag: null});
+    d.args = args;
+    d.attr = attr;
+    if(s.length) {
+      d.class = d.class.concat(s.split(' '));
+    }
+    return d
+  };
+  let proto = {
+    Element: {
+      destroy(after = 0, dur = 300) {
+        return new Promise(res => {
+          setTimeout(() => {
+            setTimeout(() => { this.remove(); res(); }, dur);
+            this.Class('destroy');
+          }, after);
+        })
+      },
+      disp(bool) {
+        if(!bool && !this.hasOwnProperty('dispState')) {
+          this.dispState = this.style.display;
+        }
+        this.style.display = bool ? this.dispState : 'none';
+        return this
+      },
+      class(c) {
+        if(typeof c == 'function') {
+          this.class(c());
+        }else{
+          let list = {add: [], rem: []};
+          Object.keys(c).forEach(f => {
+            list[(typeof c[f] === 'function' ? c[f]() : c[f]) ? 'add' : 'rem'].push(f);
+          });
+          this.Class(list.rem, 0).Class(list.add);
+        }
+        return this
+      },
+      Class(name, r = true) {
+        if(!(name instanceof Array)) {
+          name = [name];
+        }
+        if(name[0] && name[0] != '') {
+          this.className = name.reduce((a, b) => {
+            a = a.replace(new RegExp('(\\b' + b + ')+'), '');
+            return (r ? (a + ' ' + b) : a).replace(/\s{2}/g, ' ').trim()
+          }, this.className);
+
+          if(this.className.trim() == '') {
+            this.removeAttribute('class');
+          }
+        }
+        return this
+      },
+      do(method, on = 'click', args) {
+        if(arguments[3]) {
+          args = [...arguments].splice(2);
+        }
+        this['on' + on] = () => {
+          this.parent[method].apply(this.parent, args || []);
+        };
+        return this
+      },
+      append(elems, reverse) {
+        if(elems) {
+          if(!(elems instanceof Array)) {
+            elems = [elems];
+          }
+          if(reverse) {
+            elems = elems.reverse();
+          }
+
+          elems.forEach(i => this.appendChild(i.el));
+        }
+        return this
+      },
+      set(str) {
+        if(typeof (str) == 'string') {
+          str = str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/"/g, '&quot;');
+          this.innerHTML = str;
+        }
+        return this
+      },
+      pitch(e) {
+        if(e.html) {
+          this.innerHTML = Disk[e.html];
+        }
+        this.innerHTML = '';
+        return e ? this.append.apply(this, arguments) : this
+      }
+    },
+    String: {
+      kur(otag = {}) {
+        return new Sanal$$1(Object.assign(otag, {_el: this}))
+      },
+      val(obj) {
+        let r = this.split(',').map(i => { return obj.val[i] });
+        return r.length == 1 ? r[0] : r
+      },
+      vars(vars) {
+        vars = typeof vars == 'object' ? vars : arguments;
+        return Object.keys(vars).reduce((m, v) => {
+          return m.replace(new RegExp('(' + v + '[₺|$|₸|₼])+'), vars[v])
+        }, this)
+      },
+      replaceAll(f, r) {
+        let s = this;
+        for(var i in f) {
+          while(s.indexOf(f[i]) > -1) {
+            s = s.replace(f[i], r[i]);
+          }
+        }
+        return s
+      },
+      of(obj) {
+        return this == '*' ? obj : this.split(',').reduce((o, i) => { o[i] = obj[i] || null; return o }, {})
+      },
+      from(obj) {
+        let r = (this == '*' ? Object.keys(obj) : this.split(',')).map(i => obj[i]);
+        return (this.indexOf(',') == -1 && this != '*') ? r[0] : r
+      },
+      obj(arr, def) {
+        return this.split(',').reduce(
+          def instanceof Array
+            ? (n, i, j) => {
+              n[i] = arr[j] || def[j];
+              return n
+            }
+            : (n, i, j) => {
+              n[i] = arr[j] || def;
+              return n
+            }
+          , {})
+      }
+    },
+    Function: {
+      interval(time) {
+        let interval, e = this;
+        return {
+          start(...args) {
+            this.stop();
+            interval = setInterval.apply(null, [e, time].concat(args));
+            return this
+          },
+          stop() {
+            clearInterval(interval);
+            return this
+          }
+        }
+      },
+      prom(bind) {
+        let f = this.bind(bind);
+        return (...args) => {
+          return new Promise((res, rej) => {
+            try{
+              var r = f.apply(null, args);
+              if(r.then) { r.then(res).catch(rej); }else(res(r));
+            }catch(e) {
+              rej(e);
+            }
+          })
+        }
+      },
+      debounce(delay) {
+        let f = this;
+        let tOut;
+        return function(...args) {
+          clearTimeout(tOut);
+          tOut = setTimeout(() => { f.apply(f, args); }, delay);
+          return this
+        }
+      }
+    },
+    SVGElement: {
+      set(src, height, width) {
+        this.disp(0);
+        O$1.req(src).then(i => {
+          let tmp = (new DOMParser()).parseFromString(i, 'text/xml').children[0];
+          [...tmp.attributes].forEach(attr =>
+            this.setAttribute(attr.name, attr.value)
+          );
+          this.style.height = height;
+          this.style.width = width;
+          this.innerHTML = tmp.innerHTML;
+          this.disp(1);
+        });
+        return this
+      }
+    },
+    Image: {
+      set(s, svg) {
+        if(svg) {
+          O$1.req(s).then(i => this.innerHTML = i);
+          return this
+        }
+        this.loader = new Promise((res, rej) => {
+          Object.assign(this, {
+            onload() {
+              this.Class('loading', 0);
+              res();
+            },
+            onerror() {
+              this
+                .Class('loading', 0)
+                .Class('error');
+              rej();
+            },
+            src: s});
+        });
+        return this.Class('loading')
+      }
+    }
+  };
+  let props = {
+    String: {
+      get: {
+        get() {
+          var nodes = [...document.querySelectorAll(this)];
+
+          if(this.indexOf('#') > -1) {
+            nodes = nodes[0];
+          }
+          return nodes
+        }
+      },
+      to: {
+        set(value) {
+          this.el.to = value;
+        }
+      },
+      el: {
+        get() {
+          let d = _selector(this + ''), el;
+          if(d.ui) {
+            if(!O$1.UI[d.ui]) { console.error(d.ui, 'is not defined'); }
+            el = O$1.UI[d.ui].apply(d.ui, d.args);
+          }else{
+            el = d.tag == 'svg' ? document.createElementNS('http://www.w3.org/2000/svg', 'svg') : document.createElement(d.tag || 'div');
+            if(d.args.length) {
+              el.set.apply(el, d.args);
+            }
+          }
+          // Eğer kodunuz burada patlıyorsa, ₺Bileşen'i doğru oluşturmamışsınız demektir. ₺Bileşen Öge döndürmeli.
+          Object.keys(d.attr).map(attr => el.setAttribute(attr, d.attr[attr]));
+          if(d.id.length) {
+            el.id = d.id;
+          }
+          if(d.class.length) {
+            el.className = d.class.join(' ');
+          }
+          return el
+        },
+        set(v) {
+          let el = this.el;
+
+          ['click', 'load'].forEach(i => {
+            delete v[i];
+            if(v[i]) { el['on' + i] = v[i]; }
+          });
+
+          ['prop', 'has', 'layout', 'resp', 'set', 'attr', 'valid'].forEach(i => {
+            if(v.hasOwnProperty()) {
+              el[i](v[i]);
+              delete v[i];
+            }
+          });
+          if(v.to) {
+            if(typeof v.to == 'string') {
+              v.to.append(el);
+            }else{
+              el.to = v.to;
+            }
+            delete v.to;
+          }
+          Object.assign(el, v);
+          return el
+        }
+      }
+    },
+    Element: {
+      sanal: {
+        get() { return this._sanal },
+        set(sanal) {
+          let enter = this.getAttribute('enter');
+          if(enter) {
+            this.addEventListener('keyup', (e => { if(e.keyCode == 13) { sanal.parent[enter](this.value); } }).prevent.stop);
+          }
+          if(this.innerHTML.indexOf('₺') > -1) {
+            this.innerHTML = this.innerHTML.vars(sanal);
+          }
+          this._sanal = sanal;
+        }
+      },
+      el: {
+        get() { return this }
+      },
+      str: {
+        get() {
+          let ext = ['id', 'class'];
+          let str = this.tagName != 'DIV' ? this.tagName.toLowerCase() : '';
+          str += (this.id != '' ? '#' + this.id : '');
+          str += [...this.classList].map(i => '.' + i)
+            .join('')
+          ;[...this.attributes].forEach((i) => {
+            if(ext.indexOf(i.name) < 0) {
+              i.value = i.value.replace('https:', '').replace('http:', '');
+              str += '[' + i.name + '="' + i.value + '"]';
+            }
+          });
+          return str
+        }
+      },
+      to: {
+        set(toElem) {
+          if(typeof (toElem) == 'string') {
+            O$1.ready.then(() => {
+              let elm = toElem.get;
+              elm = (elm instanceof Array ? elm[0] : elm);
+              if(!elm) {
+                console.error('"seçici₺" ile belgede öge bulunamadı'.vars({seçici: toElem}));
+                return 0
+              }
+              elm.pitch(this);
+            });
+          }else{
+            if(toElem instanceof Sanal$$1) { toElem = toElem.el; }
+            toElem.pitch(this);
+          }
+        }
+      }
+    },
+    Function: {
+      prevent: {
+        get() {
+          return e => {
+            e.preventDefault();
+            this(e);
+          }
+        }
+      },
+      stop: {
+        get() {
+          return e => {
+            e.stopPropagation();
+            this(e);
+          }
+        }
+      },
+      bounced: {
+        get() {
+          return this.debounce(100)
+        }
+      }
+    },
+    Image: {
+      value: {
+        get() {
+          return this.src
+        },
+        set(src) {
+          this.loader = new Promise((res, rej) => {
+            this.prop({
+              onload() { this.Class('loading', 0); res(); },
+              onerror() { this.Class('loading', 0).Class('error'); rej(); },
+              src});
+          });
+          this.Class('loading');
+          return src
+        }
+      }
+    }
+  };
+
+  (root => {
+    Object.keys(proto).filter(i => root[i].prototype || root[i])
+      .forEach(i => Object.assign(root[i].prototype || root[i], proto[i]));
+    Object.keys(props).filter(i => root[i].prototype || root[i])
+      .forEach(i => Object.defineProperties(root[i].prototype || root[i], props[i]));
+    Object.keys(proto.Element).forEach(i => {
+      root.Number.prototype[i] = root.String.prototype[i] = function(...args) {
+        let j = this.kur();
+        return j[i].apply(j, args)
+      };
+    });
+  })(window || global);
+
+  var geleneksel = {
+    require(js, path = '') {
+      return Tor.req(path + js + '.js').then(code => {
+        let module = {};
+        eval(code);
+        return module.exports
+      })
+    },
+    define(cls, methods) {
+      if(!this[cls]) {
+        this[cls] = {};
+      }
+      Object.keys(methods).forEach(i => this[cls][i] = methods[i]);
+    },
+    calc: (obj, features) => {
+      Object.defineProperties(
+        obj,
+        Object
+          .keys(features)
+          .reduce((o, f) => {
+            o[f] = {
+              get: features[f].bind(obj),
+              set: (v) => console.error(f, 'için değer ataması yapılamaz.')
+            };
+            return o
+          }, {})
+      );
+      return obj
+    },
+    UI: {
+      M: (...args) => O.Model[args.shift()].apply('', args)
+    },
+    req: Tor.req,
+    Model: {},
+    ready: new Promise((res) => {
+      document.addEventListener('DOMContentLoaded', () => {
+        let {body, head} = document;
+        res({body, head});
+      });
+    }),
+    Time,
+    Chain,
+    Page,
+    Disk
+  };
+
+  return geleneksel;
 
 })));

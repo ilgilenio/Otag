@@ -1,4 +1,4 @@
-import {O, Page} from '../o.js'
+import {O, Page} from '../yap/ES6.js'
 
 let Kabuk = 'Kabuk'.kur({
   View: {

@@ -17,7 +17,7 @@ let banner = `
        ████     ██     ████         \`8888P'    \`888 \`88888P8 \`8888P88
          █████      █████                                         .88
             ██████████                                        d8888P
-                                   
+
 `
 
 module.exports = {
@@ -39,7 +39,8 @@ module.exports = {
   },
   devServer: {
     historyApiFallback: true,
-    overlay: true
+    overlay: true,
+    inline:true
   },
   performance: false,
   devtool: '#eval-source-map'

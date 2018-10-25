@@ -1,5 +1,5 @@
 <img src="https://ilgilenio.github.io/Otag/img/otag.svg" alt="Otağ Logo" height="80">
-  
+
 ### Otağ Çatı Çalışması
 
 [![ES6][es6-image]][npm-url]
@@ -14,9 +14,9 @@
 [website-image]: https://img.shields.io/website-up-down-green-red/https/otagjs.org.svg?label=otagjs.org
 [website-url]: https://otagjs.org
 
-Süreğen bir JavaScript çatısı olan [Otağ](https://otagjs.org), öncelikle **ön uç şablonlama**daki **yalınlık sorununu çözer**. 
+Süreğen bir JavaScript çatısı olan [Otağ](https://otagjs.org), öncelikle **ön uç şablonlama**daki **yalınlık sorununu çözer**.
 
-Kodlarınızı **yalın**laştırırırken, **sunucu yükü ve harcamalarınızı azaltır**. 
+Kodlarınızı **yalın**laştırırırken, **sunucu yükü ve harcamalarınızı azaltır**.
 
 **Soyutlamalar**, özel yapılar, **kolay Model/View Tanımı** ve **veri birleştirmeleri**yle, **büyük ölçekli** tasarılarınızda **kod bütünlüğünüzü** korur.
 
@@ -27,7 +27,7 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 * Yalınlık
 * JavaScript uzantı tabanlı olduğu için yöntemleri olabildiğince uzantı olarak yazmak
 * İstemciyi etkin kullanarak sunucu yükünü azaltırken.
-* [Yiv ölçünleri](https://gitlab.com/Otag/eslint-config-otag)(Kod kalitesi)ne özen göstermek 
+* [Yiv ölçünleri](https://gitlab.com/Otag/eslint-config-otag)(Kod kalitesi)ne özen göstermek
 * Bellek yönetimine özen göstermek
 * Zengin bileşenleri tek biçimlilik ile yalınlaştırmak
 * **[Tamga](https://github.com/ilgilenio/Tamga)** yazımını kullanmak
@@ -37,9 +37,21 @@ Otağ Çatı çalışması temel ilkeleri şunlardır:
 #### Sürüm
 Sürümleri ve etkinlikleri [izleyin 📆](https://ilgilenio.github.io/Otag/cizelge/)
 
-2.0
-[otag.js](https://cdn.jsdelivr.net/npm/otag@2.0.0/dist/o.min.js)
-[otag.min.js](https://cdn.jsdelivr.net/npm/otag@2.0.0/dist/o.min.js) (**14.3KB**, _5.5kb GZIP_)
+2.1
+[otag.js](https://cdn.jsdelivr.net/npm/otag@2.1.0/dist/o.min.js)
+[otag.min.js](https://cdn.jsdelivr.net/npm/otag@2.1.0/dist/o.min.js) (**16.4KB**, _6kb GZIP_)
+
+#### Araçlar
+```javascript
+import {araç} from 'otag'
+```
+biçiminde kullanabileceğiniz araçlar
+
+* [Disk](https://belge.otagjs.org/tr/UGA/Disk.html) (ES6 Proxy) Yerel Yığınak soyutlayıcısı (localStorage abstractor)
+* [Page](https://belge.otagjs.org/tr/UGA/Page.html) Betler arası yönlendirme işletmeni
+* [Time](https://belge.otagjs.org/tr/UGA/Time.html) Yalın zaman kütüphanesi
+* [Tor](https://belge.otagjs.org/tr/UGA/Tor.html) Tor istekçisi (Network requester)
+* [Chain](https://belge.otagjs.org/tr/UGA/Chain.html) Ardışıl işlevlerden Süreç derleyicisi
 
 #### Belgelendirme
 | | |||

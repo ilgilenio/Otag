@@ -1,19 +1,20 @@
 {
   "name": "otag",
-  "version": "2.0.0",
-  "description": "Değişen ve gelişen günümüz teknolojisine layık Hızlı, Yalın, Yenilikçi “Web uygulamaları” geliştirmek amacıyla ortaya çıkmış bir JavaScript çatı çalışmasıdır.",
+  "version": "2.1.0",
+  "description": "Hızlı, Yalın, Yenilikçi “Web uygulamalarını” geliştirmenizi sağlayan JavaScript çatısıdır.",
   "main": "index.js",
   "scripts": {
     "build": "rollup -c rollup.config.js;node betik/dür.js",
     "build:serve": "webpack",
     "dev": "webpack-dev-server --content-base www --port 1453 --mode development --open --hot",
-    "test": "npm run dev&cypress run;pkill node"
+    "test": "npm run dev&cypress run;pkill node",
+    "lint": "eslint --fix yap/*.js lib/*.js lib/ek/*.js dist/otag.js www/yay/uygulama.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://gitlab.com/Otag/Otag.git"
   },
-  "keywords": [],
+  "keywords": ["JavaScript Framework", "Node Module", "ES6 Module"],
   "author": "ilgilenio®",
   "license": "MIT",
   "bugs": {
@@ -38,6 +39,7 @@
   "dependencies": {
     "nesne": "^1.0.2",
     "o.disk": "^2.0.3",
-    "o.i18n": "^1.0.0"
+    "o.i18n": "^1.0.0",
+    "request": "^2.88.0"
   }
 }

@@ -7,11 +7,10 @@
   let Chain = function(f) {
     let obj = this || null;
 
-    return function() {
-      let args = arguments;
+    return function(...args) {
       obj = this || obj;
 
-      return new Promise(function(res, rej) {
+      return new Promise((res, rej) => {
         let prom = f.shift().prom()
             .apply(obj, args), i;
         while(i = f.shift()) {
