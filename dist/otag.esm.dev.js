@@ -84,6 +84,9 @@ class Sanal$$1 {
           return p
         }, {}));
     }
+    if(this.shadow){
+      O$1.ready.then(()=>this.el);
+    }
     this.has(this.View);
   }
   V(path = '') {
@@ -213,45 +216,52 @@ class Sanal$$1 {
       this.change();
     }
   }
+  get value(){
+    if(this.View){
+      Object
+        .keys(this.View)
+        .filter(i=>i[0]!='_')
+        .forEach(V=>{
+          this.View[V].value;
+        });
+    }
+  }
   get el() {
-    if(typeof this._el == 'string') {
-      this._el = this._el.el;
-      this._el.sanal = this;
-      if(this.template) {
-        this.layout = this.template;
-      }else if(this.content) {
-        this._el.append(this.content);
-      }else if(this.View) {
-        this._el.append(
-          Object
-            .keys(this.View)
-            .map(i => this.View[i])
-        );
-      }
+    let process = ()=>{this._el.sanal = this;
+      this.layout = this.template || Object.keys(this.View||{}).join('\n')+'\ncontent₺';
+
       if(typeof this.bind == 'string') {
         this.bind = {model: this.bind};
       }
-      let oid = 'NULLOID';
+      let _on = 'NULLOID',on;
       if(this.source) {
-        if('oid' in this) { oid = this.oid; }
-        Object.defineProperty(this, 'oid', {
-          get: () => this._oid,
-          set: (oid) => {
-            (this._oid = oid);
-            this.value = this.source[oid];
+        on = this.source.on || 'oid';
+        if(on in this) { _on = this[on]; }
+        Object.defineProperty(this, on, {
+          get: () => this['_'+on],
+          set: (value) => {
+            (this['_'+on] = value);
+            this.value = this.source[value];
           }
         });
       }
       if(this.fetch) {
         this.fetcher = this.fetch;
       }
-      ['click', 'load', 'select'].filter(i => this[i]).forEach(i => this._el['on' + i] = this[i]);
+      ['click', 'select', 'focus', 'load', 'keyup', 'keydown', 'keypress', 'change']
+        .filter(i => this[i])
+        .forEach(i => this._el['on' + i] = typeof this[i] =='string'?(e)=>this[this[i]](e):(e)=>this[i](e));
       if(this.enter) {
-        this._el.addEventListener('keyup', (e => { if(e.keyCode == 13) { this[this.enter](e.target.value); } }).prevent.stop);
+        this._el.addEventListener('keyup', (e => e.keyCode == 13? this[this.enter](e.target.value):null).prevent.stop);
       }
-      if(oid != 'NULLOID') {
-        this.oid = oid;
+      if(_on != 'NULLOID') {
+        this[on] = _on;
       }
+    };
+    if(this._el&&typeof this._el == 'string'){
+
+      this._el = this._el.el;
+      process();
     }
     return this._el
   }
@@ -299,10 +309,11 @@ class Sanal$$1 {
           dis = document.createTextNode(dis.substring(1).trimLeft());
         }else{
           dis = dis.el;
-          let ev = ['click', 'select', 'focus', 'select'];
+          let ev = ['click', 'select', 'focus', 'load', 'keyup', 'keydown', 'keypress','change'];
           [...dis.attributes].forEach(i => {
+            console.log(i);
             if(ev.indexOf(i.name) > -1) {
-              dis['on' + i.name] = (e => this[i.value](e)).stop.prevent;
+              dis['on' + i.name] = (e => this[i.value].call(this,e)).stop.prevent;
             }else
             if(i.name == 'enter') {
               dis.addEventListener('keyup', (e => { console.log(e, e.keyCode); if(e.keyCode == 13) { this[i.value](e.target.value); } }).prevent.stop);
@@ -442,13 +453,14 @@ let proto = {
       }
       return this
     },
-    set(str) {
-      if(typeof (str) == 'string') {
-        str = str
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/"/g, '&quot;');
-        this.innerHTML = str;
+    set(...str) {
+      if(typeof (str[0]) == 'string') {
+        this.innerHTML = str
+          .map(s => s
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/"/g, '&quot;'))
+          .join('<br>');
       }
       return this
     },
@@ -580,7 +592,14 @@ let proto = {
       });
       return this.Class('loading')
     }
+  },
+  HTMLInputElement: {
+    set(placeholder, type='text'){
+      this.type = type;
+      this.placeholder = placeholder;
+    }
   }
+
 };
 let props = {
   String: {

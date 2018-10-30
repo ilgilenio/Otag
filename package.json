@@ -1,6 +1,6 @@
 {
   "name": "otag",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Hızlı, Yalın, Yenilikçi “Web uygulamalarını” geliştirmenizi sağlayan JavaScript çatısıdır.",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "build:serve": "webpack",
     "dev": "webpack-dev-server --content-base www --port 1453 --mode development --open --hot",
     "test": "npm run dev&cypress run;pkill node",
-    "lint": "eslint --fix yap/*.js lib/*.js lib/ek/*.js dist/otag.js www/yay/uygulama.js"
+    "lint": "eslint --fix yap/*.js lib/*.js lib/ek/*.js dist/otag.js www/uygulama.js www/yay/uygu.js"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.8"
   },
-  "module": "dist/otag.esm.js",
+  "module": "dist/otag.esm.dev.js",
   "directories": {
     "lib": "lib"
   },
